@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id('id_user');
+            $table->id();
             $table->string('name');
             $table->string('email')->unique();
             $table->enum('role', ['admin', 'user'])->default('user');
@@ -55,12 +55,10 @@ return new class extends Migration
 
         Schema::create('riwayat_rekomendasi', function (Blueprint $table) {
             $table->id('id_riwayatrekom');
-            $table->unsignedBigInteger('id_user');
-            $table->foreign('id_user')
-             ->references('id_user')
-             ->on('users')
-             ->onDelete('cascade')
-             ->onUpdate('cascade');
+            $table->foreignId('id_user')
+            ->constrained('users')
+            ->onDelete('cascade')
+            ->onUpdate('cascade');
             $table->timestamps();
         });
 
