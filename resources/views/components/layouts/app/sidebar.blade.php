@@ -12,10 +12,11 @@
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
+                <flux:navlist.group :heading="__('Menu')" class="grid">
                     <flux:navlist.item class="mb-1" icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item class="mb-1" icon="book-open" :href="route('rekomendasi')" :current="request()->routeIs('rekomendasi')" wire:navigate>{{ __('Rekomendasi') }}</flux:navlist.item>
                     <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat')" :current="request()->routeIs('riwayat')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor')" :current="request()->routeIs('ekspor')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -63,7 +64,9 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profil')" icon="cog" wire:navigate>
+                            {{ __('Pengaturan') }}
+                        </flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -71,7 +74,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Log Out') }}
+                            {{ __('Keluar') }}
                         </flux:menu.item>
                     </form>
                 </flux:menu>
@@ -113,7 +116,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profil')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
