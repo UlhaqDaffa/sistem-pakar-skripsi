@@ -108,5 +108,5 @@ Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini s
 
 * **Backend**: [Laravel](https://laravel.com/)
 * **Frontend**: [Livewire](https://livewire.laravel.com/) + [Volt](https://livewire.laravel.com/docs/volt), [Tailwind CSS](https://tailwindcss.com/), [Alpine.js](https://alpinejs.dev/)
-* **Komponen UI**: [Flux]([https://facebook.github.io/flux/](https://fluxui.dev/))
+* **Komponen UI**: [Flux](https://fluxui.dev/)
 * **Database**: [MySQL](https://www.mysql.com/)
