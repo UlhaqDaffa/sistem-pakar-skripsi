@@ -11,7 +11,7 @@
 
 # Sistem Pakar Rekomendasi Topik Penelitian
 
-Repositori ini berisi kode sumber untuk proyek skripsi berjudul "Pengembangan Sistem Pakar Rekomendasi Topik Penelitian Dengan Kombinasi Rule Base Dan Decision Tree".
+Repositori ini berisi kode sumber untuk memenuhi skripsi berjudul "Pengembangan Sistem Pakar Rekomendasi Topik Penelitian Dengan Kombinasi Rule Base Dan Decision Tree".
 Sistem ini dirancang untuk membantu mahasiswa dalam menemukan topik penelitian yang sesuai dengan kemampuan dan minat mereka.
 
 &nbsp;
