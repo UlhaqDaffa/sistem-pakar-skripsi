@@ -26,6 +26,38 @@
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
+
+    /* Neutral Colors */
+    --color-neutral-black: #263238;
+    --color-neutral-d-grey: #4D4D4D;
+    --color-neutral-grey: #717171;
+    --color-neutral-l-grey: #89939E;
+    --color-neutral-grey-blue: #A8BED1;
+    --color-neutral-silver: #F5F7FA;
+    --color-neutral-white: #FFFFFF;
+
+    /* Primary, Secondary & Support */
+    --color-primary: #1E3A8A;
+    --color-secondary: #0D9488;
+    --color-support-info: #0EA5E9;
+
+    /* Color Shades */
+    --color-primary-shade-1: #43A046;
+    --color-primary-shade-2: #388E3B;
+    --color-secondary-shade-1: #237D31;
+    --color-secondary-shade-2: #237D31;
+
+    /* Color Tints */
+    --color-primary-tint-1: #68B869;
+    --color-primary-tint-2: #81C784;
+    --color-secondary-tint-1: #A5D6A7;
+    --color-secondary-tint-2: #A5D6A7;
+
+    /* Action Colors */
+    --color-action-warning: #FBBF24;
+    --color-action-error: #EF4444;
+    --color-action-success: #10B981;
+    --color-action-disabled: #9CA3AF;
 }
 
 @layer theme {
@@ -64,3 +96,166 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+body {
+    background-image:
+        repeating-linear-gradient(to right,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.05) 1px,
+            transparent 1px,
+            transparent 60px),
+        linear-gradient(to bottom, #e0e7ff, #c7d2fe, #f5f3ff);
+    background-size: 100%, 100%;
+    font-family: 'Instrument Sans', sans-serif;
+}
+
+.dark body {
+    background: var(--color-zinc-800);
+}
+
+/* --- Background Colors --- */
+/* --- Primary, Secondary & Support --- */
+.bg-primary {
+    background-color: var(--color-primary);
+}
+.bg-secondary {
+    background-color: var(--color-secondary);
+}
+.bg-support-info {
+    background-color: var(--color-support-info);
+}
+
+/* --- Action Colors --- */
+.bg-action-warning {
+  background-color: var(--color-action-warning);
+}
+.bg-action-error {
+  background-color: var(--color-action-error);
+}
+.bg-action-success {
+  background-color: var(--color-action-success);
+}
+.bg-action-disabled {
+  background-color: var(--color-action-disabled);
+}
+
+/* --- Neutral Colors --- */
+.bg-neutral-black {
+  background-color: var(--color-neutral-black);
+}
+.bg-neutral-d-grey {
+  background-color: var(--color-neutral-d-grey);
+}
+.bg-neutral-grey {
+  background-color: var(--color-neutral-grey);
+}
+.bg-neutral-l-grey {
+  background-color: var(--color-neutral-l-grey);
+}
+.bg-neutral-grey-blue {
+  background-color: var(--color-neutral-grey-blue);
+}
+.bg-neutral-silver {
+  background-color: var(--color-neutral-silver);
+}
+.bg-neutral-white {
+  background-color: var(--color-neutral-white);
+}
+
+/* --- Text Colors --- */
+/* --- Primary, Secondary, Support --- */
+.text-primary {
+  color: var(--color-primary);
+}
+.text-secondary {
+  color: var(--color-secondary);
+}
+.text-support-info {
+  color: var(--color-support-info);
+}
+
+/* --- Action Colors --- */
+.text-action-warning {
+  color: var(--color-action-warning);
+}
+.text-action-error {
+  color: var(--color-action-error);
+}
+.text-action-success {
+  color: var(--color-action-success);
+}
+.text-action-disabled {
+  color: var(--color-action-disabled);
+}
+
+/* --- Neutral Colors --- */
+.text-neutral-black {
+  color: var(--color-neutral-black);
+}
+.text-neutral-d-grey {
+  color: var(--color-neutral-d-grey);
+}
+.text-neutral-grey {
+  color: var(--color-neutral-grey);
+}
+.text-neutral-l-grey {
+  color: var(--color-neutral-l-grey);
+}
+.text-neutral-grey-blue {
+  color: var(--color-neutral-grey-blue);
+}
+.text-neutral-silver {
+  color: var(--color-neutral-silver);
+}
+.text-neutral-white {
+  color: var(--color-neutral-white);
+}
+
+/* --- Border Colors --- */
+/* --- Primary, Secondary, Support --- */
+.border-primary {
+  border-color: var(--color-primary);
+}
+.border-secondary {
+  border-color: var(--color-secondary);
+}
+.border-support-info {
+  border-color: var(--color-support-info);
+}
+
+/* --- Action Colors --- */
+.border-action-warning {
+  border-color: var(--color-action-warning);
+}
+.border-action-error {
+  border-color: var(--color-action-error);
+}
+.border-action-success {
+  border-color: var(--color-action-success);
+}
+.border-action-disabled {
+  border-color: var(--color-action-disabled);
+}
+
+/* --- Neutral Colors --- */
+.border-neutral-black {
+  border-color: var(--color-neutral-black);
+}
+.border-neutral-d-grey {
+  border-color: var(--color-neutral-d-grey);
+}
+.border-neutral-grey {
+  border-color: var(--color-neutral-grey);
+}
+.border-neutral-l-grey {
+  border-color: var(--color-neutral-l-grey);
+}
+.border-neutral-grey-blue {
+  border-color: var(--color-neutral-grey-blue);
+}
+.border-neutral-silver {
+  border-color: var(--color-neutral-silver);
+}
+.border-neutral-white {
+  border-color: var(--color-neutral-white);
+}

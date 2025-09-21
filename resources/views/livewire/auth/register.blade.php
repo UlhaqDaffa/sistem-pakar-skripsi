@@ -35,8 +35,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 }; ?>
 
-<div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Create an account')" :description="__('Enter your details below to create your account')" />
+<div class="flex flex-col gap-6 pt-2">
+    <x-auth-header :title="__('Buat Akun')" :description="__('Masukkan informasi anda untuk membuat akun')" />
 
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
@@ -45,22 +45,22 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <!-- Name -->
         <flux:input
             wire:model="name"
-            :label="__('Name')"
+            :label="__('Nama')"
             type="text"
             required
             autofocus
             autocomplete="name"
-            :placeholder="__('Full name')"
+            :placeholder="__('Masukkan nama anda')"
         />
 
         <!-- Email Address -->
         <flux:input
             wire:model="email"
-            :label="__('Email address')"
+            :label="__('Alamat Email')"
             type="email"
             required
             autocomplete="email"
-            placeholder="email@example.com"
+            placeholder="Masukkan email anda"
         />
 
         <!-- Password -->
@@ -70,30 +70,30 @@ new #[Layout('components.layouts.auth')] class extends Component {
             type="password"
             required
             autocomplete="new-password"
-            :placeholder="__('Password')"
+            :placeholder="__('Masukkan password anda')"
             viewable
         />
 
         <!-- Confirm Password -->
         <flux:input
             wire:model="password_confirmation"
-            :label="__('Confirm password')"
+            :label="__('Konfirmasi Password')"
             type="password"
             required
             autocomplete="new-password"
-            :placeholder="__('Confirm password')"
+            :placeholder="__('Konfirmasi pasword anda')"
             viewable
         />
 
         <div class="flex items-center justify-end">
             <flux:button type="submit" variant="primary" class="w-full">
-                {{ __('Create account') }}
+                {{ __('Buat Akun') }}
             </flux:button>
         </div>
     </form>
 
     <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-        <span>{{ __('Already have an account?') }}</span>
-        <flux:link :href="route('login')" wire:navigate>{{ __('Log in') }}</flux:link>
+        <span>{{ __('Sudah punya akun?') }}</span>
+        <flux:link :href="route('login')" wire:navigate>{{ __('masuk') }}</flux:link>
     </div>
 </div>

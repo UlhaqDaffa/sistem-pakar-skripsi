@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar sticky stashable class="bg-white/30 dark:bg-zinc-900/30 backdrop-blur-lg border-e border-white/40 dark:border-white/10">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
@@ -12,20 +12,24 @@
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                <flux:navlist.group :heading="__('Menu')" class="grid">
+                    <flux:navlist.item class="mb-1" icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi')" :current="request()->routeIs('konsultasi')" wire:navigate>{{ __('Konsultasi') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat')" :current="request()->routeIs('riwayat')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor')" :current="request()->routeIs('ekspor')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
+
 
             <flux:spacer />
 
             <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
+                <flux:navlist.item icon="folder-git-2" href="https://github.com/UlhaqDaffa/sistem-pakar-skripsi" target="_blank">
+                {{ __('Repositori Proyek') }}
                 </flux:navlist.item>
 
                 <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                {{ __('Documentation') }}
+                {{ __('Bantuan') }}
                 </flux:navlist.item>
             </flux:navlist>
 
@@ -60,7 +64,9 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profil')" icon="cog" wire:navigate>
+                            {{ __('Pengaturan') }}
+                        </flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -68,7 +74,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Log Out') }}
+                            {{ __('Keluar') }}
                         </flux:menu.item>
                     </form>
                 </flux:menu>
@@ -110,7 +116,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profil')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
