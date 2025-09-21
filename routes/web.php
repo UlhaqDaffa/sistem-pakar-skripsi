@@ -11,9 +11,9 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::view('rekomendasi', 'rekomendasi')
+Route::view('konsultasi', 'konsultasi')
     ->middleware(['auth', 'verified'])
-    ->name('rekomendasi');
+    ->name('konsultasi');
 
 Route::view('riwayat', 'riwayat')
     ->middleware(['auth', 'verified'])

@@ -14,7 +14,7 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Menu')" class="grid">
                     <flux:navlist.item class="mb-1" icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('rekomendasi')" :current="request()->routeIs('rekomendasi')" wire:navigate>{{ __('Rekomendasi') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi')" :current="request()->routeIs('konsultasi')" wire:navigate>{{ __('Konsultasi') }}</flux:navlist.item>
                     <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat')" :current="request()->routeIs('riwayat')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
                     <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor')" :current="request()->routeIs('ekspor')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
                 </flux:navlist.group>
@@ -24,7 +24,7 @@
             <flux:spacer />
 
             <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
+                <flux:navlist.item icon="folder-git-2" href="https://github.com/UlhaqDaffa/sistem-pakar-skripsi" target="_blank">
                 {{ __('Repository') }}
                 </flux:navlist.item>
 
