@@ -1,3 +1,10 @@
+<?php
+
+use Livewire\Volt\Component;
+
+new class extends Component {
+    //
+}; ?>
 
     <div wire:ignore.self class="bg-white/30 dark:bg-neutral-800/30 backdrop-blur-lg border border-white/40 dark:border-white/10 p-8 rounded-xl shadow-md text-center flex flex-col items-center h-full">
         <div class="flex-grow flex flex-col items-center justify-center">
@@ -11,4 +18,5 @@
             <livewire:konsultasi.starter-modal/>
         </div>
     </div>
+
 
