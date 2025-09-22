@@ -11,14 +11,6 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::view('riwayat', 'riwayat')
-    ->middleware(['auth', 'verified'])
-    ->name('riwayat');
-
-Route::view('ekspor', 'ekspor')
-    ->middleware(['auth', 'verified'])
-    ->name('ekspor');
-
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profil');
 
@@ -32,6 +24,15 @@ Route::middleware(['auth'])->group(function () {
         Volt::route('/proses/{step?}', 'konsultasi.proses')->name('proses');
         Volt::route('/hasil', 'konsultasi.hasil')->name('hasil');
     });
+
+    Route::redirect('riwayat', 'riwayat');
+
+    Volt::route('riwayat', 'riwayat.riwayat')->name('riwayat');
+
+    Route::redirect('ekspor', 'ekspor');
+
+    Volt::route('ekspor', 'ekspor.ekspor')->name('ekspor');
+
 });
 
 require __DIR__.'/auth.php';

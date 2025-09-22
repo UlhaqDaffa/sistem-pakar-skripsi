@@ -3,15 +3,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale())}}" class="light">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>{{ $title ?? 'Spectra - Rekomendasi Topik' }}</title>
-
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.head')
 </head>
 
@@ -53,7 +45,7 @@
 
         <footer class="w-full py-6 text-center">
             <p class="text-sm text-gray-500 dark:text-gray-400">
-                &copy; {{ date('Y') }} Spectra. All rights reserved.
+                &copy; {{ date('Y') }} Daffa Dhiya Ulhaq. All rights reserved.
             </p>
         </footer>
     </div>
