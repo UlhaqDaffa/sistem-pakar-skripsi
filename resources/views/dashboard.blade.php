@@ -6,12 +6,13 @@
         <div class="p-6 rounded-xl shadow-lg bg-gradient-to-l from-blue-800/50 to-blue-900/80 backdrop-blur-lg border border-white/20">
             <h2 class="text-2xl font-semibold text-white mb-4">Selamat Datang, {{ auth()->user()->name ?? 'Pengguna' }}!</h2>
             <p class="text-blue-200 mb-6">Siap untuk memulai konsultasi baru atau melihat riwayat Anda?</p>
-            <a href="{{ route('konsultasi') }}"
+            <a href="{{ route('konsultasi.starter') }}"
                class="relative inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white overflow-hidden group
                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
                       x-data="{ hovered: false }"
                       @mouseenter="hovered = true"
-                      @mouseleave="hovered = false">
+                      @mouseleave="hovered = false"
+                      wire:click="redirect(route('konsultasi.starter'), navigate: true)">
                 <span class="absolute inset-0 bg-white transition-all duration-300 ease-out"
                       :class="{ 'w-full': hovered, 'w-0': !hovered }">
                 </span>
@@ -79,7 +80,7 @@
                         </h3>
                         <p :class="hovered ? 'text-gray-200' : 'text-gray-500 dark:text-neutral-400'"
                            class="transition-colors duration-300">
-                            Unduh data konsultasi.
+                            Unduh data konsultasi
                         </p>
                     </div>
                     <div class="ml-4">
