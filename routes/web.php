@@ -18,21 +18,15 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/tampilan', 'settings.tampilan')->name('settings.tampilan');
 
-
-    Route::prefix('konsultasi')->name('konsultasi.')->middleware(['verified'])->group(function () {
-        Volt::route('/', 'konsultasi.starter')->name('starter');
-        Volt::route('/proses/{step?}', 'konsultasi.proses')->name('proses');
-        Volt::route('/hasil', 'konsultasi.hasil')->name('hasil');
+    Route::middleware(['verified'])->group(function () {
+        Volt::route('konsultasi/starter', 'konsultasi.starter')->name('konsultasi.starter');
+        Volt::route('konsultasi/proses/{step?}', 'konsultasi.proses')->name('konsultasi.proses');
+        Volt::route('konsultasi/hasil', 'konsultasi.hasil')->name('konsultasi.hasil');
+        Volt::route('riwayat', 'riwayat.riwayat')->name('riwayat.index');
+        Volt::route('riwayat/{consultation}', 'riwayat.show')->name('riwayat.show');
+        Volt::route('ekspor', 'ekspor.ekspor')->name('ekspor.index');
     });
-
-    Route::redirect('riwayat', 'riwayat');
-
-    Volt::route('riwayat', 'riwayat.riwayat')->name('riwayat');
-
-    Route::redirect('ekspor', 'ekspor');
-
-    Volt::route('ekspor', 'ekspor.ekspor')->name('ekspor');
-
 });
+
 
 require __DIR__.'/auth.php';

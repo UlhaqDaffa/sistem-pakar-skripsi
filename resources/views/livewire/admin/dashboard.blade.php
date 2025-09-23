@@ -1,5 +1,10 @@
-<x-layouts.app :title="__('Dashboard')">
+<?php
 
+use function Livewire\Volt\{layout};
+
+//
+
+?>
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
 
         <!-- Welcome Card & Main CTA -->
@@ -131,4 +136,3 @@
 
     </div>
 
-</x-layouts.app>

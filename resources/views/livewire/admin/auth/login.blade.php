@@ -37,10 +37,23 @@ new #[Layout('components.layouts.auth')] class extends Component {
             ]);
         }
 
+        // Check if the authenticated user has the 'admin' role
+        if (Auth::user()->role !== 'admin') {
+            Auth::logout(); // Log out the non-admin user
+            Session::invalidate();
+            Session::regenerateToken();
+
+            RateLimiter::hit($this->throttleKey()); // Still hit rate limiter for security
+
+            throw ValidationException::withMessages([
+                'email' => __('Anda tidak memiliki izin admin.'), // Custom message
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        $this->redirectIntended(default: route('admin.dashboard', absolute: false), navigate: true);
     }
 
     /**
@@ -74,7 +87,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 }; ?>
 
 <div class="flex flex-col gap-6 pt-2">
-    <x-auth-header :title="__('Masuk ke akun anda')" :description="__('Masukkan email dan password untuk masuk')" />
+    <x-auth-header :title="__('Login Admin')" :description="__('Masukkan kredensial admin untuk masuk')" />
 
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
@@ -118,14 +131,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
     </form>
 
-    @if (Route::has('register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Tidak punya akun?') }}</span>
-            <flux:link :href="route('register')" wire:navigate>{{ __('Buat') }}</flux:link>
-        </div>
-    @endif
-
     <div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
-        <flux:link :href="route('admin.login')" wire:navigate>{{ __('Login sebagai Admin') }}</flux:link>
+        <flux:link :href="route('login')" wire:navigate>{{ __('Login sebagai Pengguna') }}</flux:link>
     </div>
 </div>
