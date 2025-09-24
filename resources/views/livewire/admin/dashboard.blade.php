@@ -2,7 +2,7 @@
 
 use function Livewire\Volt\{layout};
 
-//
+layout('components.layouts.app-admin');
 
 ?>
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
@@ -10,7 +10,7 @@ use function Livewire\Volt\{layout};
         <!-- Welcome Card & Main CTA -->
         <div class="p-6 rounded-xl shadow-lg bg-gradient-to-l from-blue-800/50 to-blue-900/80 backdrop-blur-lg border border-white/20">
             <h2 class="text-2xl font-semibold text-white mb-4">Selamat Datang, {{ auth()->user()->name ?? 'Pengguna' }}!</h2>
-            <p class="text-blue-200 mb-6">Siap untuk memulai konsultasi baru atau melihat riwayat Anda?</p>
+            <p class="text-blue-200 mb-6">Atur dan kelola konsultasi Anda di sini.</p>
             <a href="{{ route('konsultasi.starter') }}"
                class="relative inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white overflow-hidden group
                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"

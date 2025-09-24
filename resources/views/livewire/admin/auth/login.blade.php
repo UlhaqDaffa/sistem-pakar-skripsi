@@ -37,16 +37,15 @@ new #[Layout('components.layouts.auth')] class extends Component {
             ]);
         }
 
-        // Check if the authenticated user has the 'admin' role
         if (Auth::user()->role !== 'admin') {
-            Auth::logout(); // Log out the non-admin user
+            Auth::logout();
             Session::invalidate();
             Session::regenerateToken();
 
-            RateLimiter::hit($this->throttleKey()); // Still hit rate limiter for security
+            RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('Anda tidak memiliki izin admin.'), // Custom message
+                'email' => __('Anda tidak memiliki izin admin.'),
             ]);
         }
 
