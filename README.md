@@ -28,7 +28,7 @@ Proses kerjanya dibagi menjadi dua tahap utama (filter-then-classify):
 
 Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini secara lokal.
 
-- PHP (versi 8.1 atau lebih baru)
+- PHP (versi 8.3 atau lebih baru)
 
 - Composer
 
