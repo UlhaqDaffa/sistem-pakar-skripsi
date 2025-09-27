@@ -3,14 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-// Admin Authentication Routes
 Route::middleware('guest')->group(function () {
     Volt::route('login', 'admin.auth.login')->name('login');
 });
 
-// Authenticated Admin Routes
 Route::middleware(['auth', 'admin'])->group(function() {
-    // Admin dashboard and other admin routes can go here.
-    // For example:
     Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
+
+    Route::redirect('settings/admin', 'settings/admin/profil');
+
+    Volt::route('settings/profil', 'admin.settings.profil')->name('settings.profil');
+    Volt::route('settings/password', 'admin.settings.password')->name('settings.password');
+    Volt::route('settings/tampilan', 'admin.settings.tampilan')->name('settings.tampilan');
 });
