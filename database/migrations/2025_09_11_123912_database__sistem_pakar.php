@@ -27,7 +27,7 @@ return new class extends Migration
             $table->id('id_topik');
             $table->string('judul');
             $table->string('deskripsi');
-            $table->string('katregori');
+            $table->string('kategori');
             $table->timestamps();
         });
 
@@ -91,7 +91,13 @@ return new class extends Migration
              ->onUpdate('cascade');
             $table->timestamps();
         });
+
+        Schema::create('pertanyaan', function (Blueprint $table) {
+
+
+        });
     }
+
 
     /**
      * Reverse the migrations.

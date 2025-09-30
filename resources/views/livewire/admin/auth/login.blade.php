@@ -33,7 +33,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'password' => __('Username atau password salah.'),
             ]);
         }
 
@@ -45,7 +45,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('Anda tidak memiliki izin admin.'),
+                'password' => __('Anda tidak memiliki izin admin.'),
             ]);
         }
 

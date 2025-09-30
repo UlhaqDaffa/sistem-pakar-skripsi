@@ -5,7 +5,8 @@ use Livewire\Attributes\Layout;
 
 new #[layout('components.layouts.app-admin')] class extends Component {
     //
-}; ?>
+};
+?>
 
 <section class="w-full">
     @include('partials.settings-heading')

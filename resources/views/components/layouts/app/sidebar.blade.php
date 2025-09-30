@@ -15,9 +15,9 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Menu')" class="grid">
                     <flux:navlist.item class="mb-1" icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi.starter')" :current="request()->routeIs('konsultasi')" wire:navigate>{{ __('Konsultasi') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat.index')" :current="request()->routeIs('riwayat')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor.index')" :current="request()->routeIs('ekspor')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi.starter')" :current="request()->routeIs('konsultasi.starter', 'konsultasi.proses', 'konsultasi.hasil')" wire:navigate>{{ __('Konsultasi') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat.index')" :current="request()->routeIs('riwayat.index')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor.index')" :current="request()->routeIs('ekspor.index')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 

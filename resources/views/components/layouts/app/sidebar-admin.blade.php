@@ -8,16 +8,15 @@
         <flux:sidebar  class="bg-white/30 dark:bg-zinc-900/30 backdrop-blur-lg border-e border-white/40 dark:border-white/10">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+            <a href="{{ route('admin.dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Menu')" class="grid">
-                    <flux:navlist.item class="mb-1" icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi.starter')" :current="request()->routeIs('konsultasi')" wire:navigate>{{ __('Topik Penelitian') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat.index')" :current="request()->routeIs('riwayat')" wire:navigate>{{ __('Aturan-Aturan') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor.index')" :current="request()->routeIs('ekspor')" wire:navigate>{{ __('Ekspor Laporan') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="home" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('admin.topik')" :current="request()->routeIs('admin.topik')" wire:navigate>{{ __('Topik Penelitian') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('admin.aturan')" :current="request()->routeIs('admin.aturan')" wire:navigate>{{ __('Aturan-Aturan') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
