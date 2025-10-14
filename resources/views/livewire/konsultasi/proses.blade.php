@@ -4,7 +4,6 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
 use App\Models\Konsultasi;
-use App\Models\PilganDetail;
 use App\Models\KonsultasiDetail;
 use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
@@ -44,12 +43,12 @@ new class extends Component {
     {
         KonsultasiDetail::create([
             'konsultasi_id' => $this->konsultasi->id,
-            'pertanyaan_id' => $this->pertanyaanSekarang->id,
+            'pertanyaan_id' => $this->pertanyaanSekarang()->id,
             'jawaban_id' => $jawabanId
         ]);
 
         $this->jawabanUser[] = [
-            'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
+            'pertanyaan' => $this->pertanyaanSekarang()->teks_pertanyaan,
             'jawaban' => Jawaban::find($jawabanId)->teks_jawaban,
         ];
 
@@ -91,7 +90,6 @@ new class extends Component {
         return $this->kategoriPertanyaan->get($this->tahapIndex);
     }
 
-    #[Computed]
     public function pertanyaanSekarang(): ?Pertanyaan
     {
         return $this->semuaPertanyaan->get($this->pertanyaanIndex);
@@ -151,16 +149,16 @@ new class extends Component {
             </div>
         </div>
 
-        @if($this->pertanyaanSekarang)
+        @if($this->pertanyaanSekarang())
             <!-- Question Area -->
             <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="tahap-{{ $this->tahapIndex }}-pertanyaan-{{ $this->pertanyaanIndex }}">
-                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang->teks_pertanyaan }}</h3>
+                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang()->teks_pertanyaan }}</h3>
 
                 <!-- Answer Options -->
                 <div class="mt-8 flex flex-wrap justify-center items-center gap-4">
 
-                    @if($this->pertanyaanSekarang->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang->tipe_jawaban === 'skala_likert' || $this->pertanyaanSekarang->tipe_jawaban === 'input_nilai')
-                        @foreach($this->pertanyaanSekarang->jawaban as $jawaban)
+                    @if($this->pertanyaanSekarang()->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang()->tipe_jawaban === 'skala_likert' || $this->pertanyaanSekarang()->tipe_jawaban === 'input_nilai')
+                        @foreach($this->pertanyaanSekarang()->jawaban as $jawaban)
                             <button wire:click="pilihJawaban({{ $jawaban->id }})" wire:key="jawaban-{{ $jawaban->id }}" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
                                 {{ $jawaban->teks_jawaban }}
                             </button>
