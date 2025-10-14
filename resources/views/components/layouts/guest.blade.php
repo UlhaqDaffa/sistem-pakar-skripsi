@@ -45,7 +45,7 @@
 
         <footer class="w-full py-6 text-center">
             <p class="text-sm text-gray-500 dark:text-gray-400">
-                &copy; {{ date('Y') }} Daffa Dhiya Ulhaq. All rights reserved.
+                &copy; {{ date('Y') }} Daffa Dhiya Ulhaq.
             </p>
         </footer>
     </div>

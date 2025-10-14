@@ -22,7 +22,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-
         Schema::create('topik_penelitian', function (Blueprint $table) {
             $table->id('id_topik');
             $table->string('judul');
@@ -38,78 +37,74 @@ return new class extends Migration
             $table->timestamps();
         });
 
-
         Schema::create('kondisi_aturan', function (Blueprint $table) {
             $table->id('id_kondisi');
             $table->unsignedBigInteger('id_aturan');
             $table->foreign('id_aturan')
-             ->references('id_aturan')
-             ->on('aturan_rbs')
-             ->onDelete('cascade')
-             ->onUpdate('cascade');
+                ->references('id_aturan')
+                ->on('aturan_rbs')
+                ->onDelete('cascade')
+                ->onUpdate('cascade');
             $table->string('faktor');
             $table->string('operator');
             $table->string('nilai');
             $table->timestamps();
         });
 
-        Schema::create('riwayat_rekomendasi', function (Blueprint $table) {
-            $table->id('id_riwayatrekom');
-            $table->foreignId('id_user')
-            ->constrained('users')
-            ->onDelete('cascade')
-            ->onUpdate('cascade');
-            $table->timestamps();
-        });
-
-        Schema::create('riwayat_input', function (Blueprint $table) {
-            $table->id('id_riwayatinput');
-            $table->unsignedBigInteger('id_riwayatrekom');
-            $table->foreign('id_riwayatrekom')
-             ->references('id_riwayatrekom')
-             ->on('riwayat_rekomendasi')
-             ->onDelete('cascade')
-             ->onUpdate('cascade');
-            $table->string('faktor');
-            $table->string('nilai');
-            $table->timestamps();
-        });
-
-        Schema::create('riwayat_hasil', function (Blueprint $table) {
-            $table->id('id_riwayathasil');
-            $table->unsignedBigInteger('id_riwayatrekom');
-            $table->foreign('id_riwayatrekom')
-             ->references('id_riwayatrekom')
-             ->on('riwayat_rekomendasi')
-             ->onDelete('cascade')
-             ->onUpdate('cascade');
-            $table->unsignedBigInteger('id_topik');
-            $table->foreign('id_topik')
-             ->references('id_topik')
-             ->on('topik_penelitian')
-             ->onDelete('cascade')
-             ->onUpdate('cascade');
+        Schema::create('kategori_pertanyaan', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_kategori');
+            $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
 
         Schema::create('pertanyaan', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('kategori_id')->constrained('kategori_pertanyaan')->cascadeOnDelete();
+            $table->text('teks_pertanyaan');
+            $table->enum('tipe_jawaban', ['pilihan_ganda', 'skala_likert', 'input_nilai']);
+            $table->integer('urutan')->default(0);
+            $table->timestamps();
+        });
 
+        Schema::create('jawaban', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
+            $table->string('teks_jawaban');
+            $table->integer('nilai')->nullable();
+            $table->timestamps();
+        });
 
+        Schema::create('konsultasi', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->text('hasil_konsultasi')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('konsultasi_detail', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('konsultasi_id')->constrained('konsultasi')->cascadeOnDelete();
+            $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
+            $table->foreignId('jawaban_id')->nullable()->constrained('jawaban')->cascadeOnDelete();
+            $table->string('nilai_input_pengguna')->nullable();
+            $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('topik_penelitian');
-        Schema::dropIfExists('aturan_rbs');
+        Schema::dropIfExists('konsultasi_detail');
+        Schema::dropIfExists('konsultasi');
+        Schema::dropIfExists('jawaban');
+        Schema::dropIfExists('pertanyaan');
+        Schema::dropIfExists('kategori_pertanyaan');
         Schema::dropIfExists('kondisi_aturan');
-        Schema::dropIfExists('riwayat_rekomendasi');
-        Schema::dropIfExists('riwayat_input');
-        Schema::dropIfExists('riwayat_hasil');
+        Schema::dropIfExists('aturan_rbs');
+        Schema::dropIfExists('topik_penelitian');
+        Schema::dropIfExists('users');
     }
 };

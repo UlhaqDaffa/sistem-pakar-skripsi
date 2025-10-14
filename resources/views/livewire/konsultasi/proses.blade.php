@@ -1,69 +1,135 @@
 <?php
 
 use Livewire\Volt\Component;
+use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
+use App\Models\Konsultasi;
+use App\Models\KonsultasiDetail;
+use App\Models\KategoriPertanyaan;
+use App\Models\Pertanyaan;
+use App\Models\Jawaban;
 
 new class extends Component {
-    public Collection $questions;
-    public Collection $answers;
-    public int $step = 1;
+    public ?Konsultasi $konsultasi;
+    public Collection $kategoriPertanyaan;
+    public Collection $semuaPertanyaan;
+    public array $jawabanUser = [];
+
+    public int $tahapIndex = 0;
+    public int $pertanyaanIndex = 0;
+    public string $nilaiInput = '';
 
     public function mount(): void
     {
-        $this->questions = collect([
-            ['id' => 1, 'text' => 'Apakah Anda sering merasa kesulitan untuk fokus saat belajar?', 'description' => 'Ini bisa menjadi indikasi dari beberapa faktor, seperti kelelahan, stres, atau gangguan lainnya.'],
-            ['id' => 2, 'text' => 'Apakah Anda merasa cemas berlebihan saat menghadapi ujian?', 'description' => 'Kecemasan dapat mempengaruhi kinerja akademis dan kesehatan mental Anda.'],
-            ['id' => 3, 'text' => 'Apakah Anda sering menunda-nunda pekerjaan atau tugas sekolah?', 'description' => 'Prokrastinasi adalah masalah umum yang dapat diatasi dengan strategi yang tepat.'],
-            ['id' => 4, 'text' => 'Apakah Anda merasa kurang termotivasi untuk belajar?', 'description' => 'Motivasi adalah kunci keberhasilan akademis, dan ada banyak cara untuk meningkatkannya.'],
-            ['id' => 5, 'text' => 'Apakah Anda sering merasa lelah atau kurang energi?', 'description' => 'Kelelahan dapat disebabkan oleh banyak hal, termasuk kurang tidur, stres, dan pola makan.'],
-        ]);
-
-        $this->answers = collect();
+        $this->konsultasi = Konsultasi::create(['user_id' => auth()->id()]);
+        $this->kategoriPertanyaan = KategoriPertanyaan::orderBy('id')->get();
+        $this->loadTahap();
     }
 
-    public function answer(bool $response): void
+    public function loadTahap(): void
     {
-        $this->answers->put($this->step, $response);
-
-        if ($this->step >= $this->questions->count()) {
-            // All questions answered, redirect to the results page.
-            // We can pass the answers via session or query string.
-            session()->put('consultation_answers', $this->answers->all());
-            $this->redirect(route('konsultasi.hasil'), navigate: true);
+        if ($this->tahapIndex >= $this->kategoriPertanyaan->count()) {
+            $this->finishConsultation();
             return;
         }
+        $kategoriId = $this->kategoriPertanyaan[$this->tahapIndex]->id;
+        $this->semuaPertanyaan = Pertanyaan::where('kategori_id', $kategoriId)
+            ->with('jawaban')
+            ->orderBy('urutan')
+            ->get();
+        $this->pertanyaanIndex = 0;
+    }
 
-        $this->step++;
+    public function pilihJawaban(int $jawabanId): void
+    {
+        KonsultasiDetail::create([
+            'konsultasi_id' => $this->konsultasi->id,
+            'pertanyaan_id' => $this->pertanyaanSekarang->id,
+            'jawaban_id' => $jawabanId,
+            'nilai_input_pengguna' => null,
+        ]);
+
+        $this->jawabanUser[] = [
+            'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
+            'jawaban' => Jawaban::find($jawabanId)->teks_jawaban,
+        ];
+
+        $this->next();
+    }
+
+    public function submitNilai(): void
+    {
+        // Validasi
+        // $this->validate(['nilaiInput' => 'required|numeric|between:0,100']);
+
+        KonsultasiDetail::create([
+            'konsultasi_id' => $this->konsultasi->id,
+            'pertanyaan_id' => $this->pertanyaanSekarang->id,
+            'jawaban_id' => null,
+            'nilai_input_pengguna' => $this->nilaiInput,
+        ]);
+
+        $this->jawabanUser[] = [
+            'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
+            'jawaban' => 'Nilai: ' . $this->nilaiInput,
+        ];
+
+        $this->nilaiInput = ''; // Reset input
+        $this->next();
+    }
+
+    private function next(): void
+    {
+        $this->pertanyaanIndex++;
+        if ($this->pertanyaanIndex >= $this->semuaPertanyaan->count()) {
+            $this->tahapIndex++;
+            $this->loadTahap();
+        }
+    }
+
+    public function finishConsultation(): void
+    {
+        // Tambahin logika untuk proses model decision tree disini
+        $this->konsultasi->update(['hasil_konsultasi' => 'Menunggu proses analisis...']);
+        $this->redirect(route('konsultasi.hasil', ['konsultasi' => $this->konsultasi->id]), navigate: true);
     }
 
     public function previousStep(): void
     {
-        if ($this->step > 1) {
-            $this->answers->forget($this->step);
-            $this->step--;
-        } else {
-            $this->redirect(route('konsultasi.starter'), navigate: true);
-        }
+        $this->konsultasi->delete();
+        $this->redirect(route('konsultasi.starter'), navigate: true);
     }
 
     public function restart(): void
     {
-        $this->step = 1;
-        $this->answers = collect();
+        $this->konsultasi->delete();
+        $this->redirect(route('konsultasi.starter'), navigate: true);
     }
 
-    public function getCurrentQuestionProperty(): ?array
+    #[Computed]
+    public function kategoriSekarang(): ?KategoriPertanyaan
     {
-        return $this->questions->firstWhere('id', $this->step);
+        return $this->kategoriPertanyaan->get($this->tahapIndex);
     }
 
-    public function getProgressProperty(): int
+    #[Computed]
+    public function pertanyaanSekarang(): ?Pertanyaan
     {
-        // Ensure we don't divide by zero and calculate progress for the current step.
-        if ($this->questions->isEmpty()) {
-            return 0;
+        return $this->semuaPertanyaan->get($this->pertanyaanIndex);
+    }
+
+    #[Computed]
+    public function progress(): int
+    {
+        $totalKategori = $this->kategoriPertanyaan->count();
+        if ($totalKategori === 0) return 0;
+        $progressTahap = ($this->tahapIndex / $totalKategori) * 100;
+        $totalPertanyaanDiTahap = $this->semuaPertanyaan->count();
+        if ($totalPertanyaanDiTahap > 0) {
+            $progressDiTahap = ($this->pertanyaanIndex / $totalPertanyaanDiTahap) * (100 / $totalKategori);
+            $progressTahap += $progressDiTahap;
         }
-        return (($this->step -1) / $this->questions->count()) * 100;
+        return min(100, (int)$progressTahap);
     }
 }; ?>
 
@@ -82,8 +148,13 @@ new class extends Component {
                     </svg>
                 </button>
                 <div>
-                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Mulai Konsultasi</h2>
-                    <p class="text-gray-600 dark:text-neutral-300 mt-1">Jawab pertanyaan berikut untuk mendapatkan hasil.</p>
+                    @if($this->kategoriSekarang)
+                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Tahap {{ $this->tahapIndex + 1 }}: {{ $this->kategoriSekarang->nama_kategori }}</h2>
+                        <p class="text-gray-600 dark:text-neutral-300 mt-1">{{ $this->kategoriSekarang->deskripsi }}</p>
+                    @else
+                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Menyelesaikan Konsultasi</h2>
+                        <p class="text-gray-600 dark:text-neutral-300 mt-1">Hasil Anda sedang diproses.</p>
+                    @endif
                 </div>
             </div>
 
@@ -91,7 +162,9 @@ new class extends Component {
             <div class="mt-4">
                 <div class="flex justify-between mb-1">
                     <span class="text-base font-medium text-primary dark:text-blue-400">Proses Konsultasi</span>
-                    <span class="text-sm font-medium text-primary dark:text-blue-400">Langkah {{ $step }} dari {{ $questions->count() }}</span>
+                    @if($this->kategoriSekarang && $this->semuaPertanyaan->count() > 0)
+                        <span class="text-sm font-medium text-primary dark:text-blue-400">Pertanyaan {{ $this->pertanyaanIndex + 1 }} dari {{ $this->semuaPertanyaan->count() }}</span>
+                    @endif
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                     <div class="bg-primary h-2.5 rounded-full transition-all duration-500" style="width: {{ $this->progress }}%"></div>
@@ -99,42 +172,56 @@ new class extends Component {
             </div>
         </div>
 
-        @if($this->currentQuestion)
-        <!-- Question Area -->
-        <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="question-{{ $this->currentQuestion['id'] }}">
-            <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->currentQuestion['text'] }}</h3>
-            <p class="text-gray-500 dark:text-neutral-400 mt-2 max-w-2xl">{{ $this->currentQuestion['description'] }}</p>
+        @if($this->pertanyaanSekarang)
+            <!-- Question Area -->
+            <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="question-{{ $this->pertanyaanSekarang->id }}">
+                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang->teks_pertanyaan }}</h3>
 
-            <!-- Answer Options -->
-            <div class="mt-8 flex gap-4">
-                <button wire:click="answer(true)" class="px-8 py-3 text-lg font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
-                    Ya
-                </button>
-                <button wire:click="answer(false)" class="px-8 py-3 text-lg font-semibold rounded-lg dark:bg-neutral-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-neutral-600 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-gray-400 dark:hover:ring-neutral-500 dark:hover:ring-offset-neutral-800">
-                    Tidak
-                </button>
+                <!-- Answer Options -->
+                <div class="mt-8 flex flex-wrap justify-center items-center gap-4">
+
+                    @if($this->pertanyaanSekarang->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang->tipe_jawaban === 'skala_likert')
+                        @foreach($this->pertanyaanSekarang->jawaban as $jawaban)
+                            <button wire:click="pilihJawaban({{ $jawaban->id }})" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
+                                {{ $jawaban->teks_jawaban }}
+                            </button>
+                        @endforeach
+
+                    @elseif($this->pertanyaanSekarang->tipe_jawaban === 'input_nilai')
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <input
+                                type="text"
+                                wire:model.defer="nilaiInput"
+                                placeholder="Contoh: 85"
+                                @keydown.enter="submitNilai"
+                                class="text-center bg-white/50 dark:bg-neutral-700/50 border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
+                            <button
+                                wire:click="submitNilai"
+                                class="px-8 py-3 text-lg font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
+                                Lanjutkan
+                            </button>
+                        </div>
+                    @endif
+
+                </div>
             </div>
-        </div>
         @else
-        <!-- All questions answered -->
-        <div class="flex-grow flex flex-col items-center justify-center text-center px-4">
-             <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">Terima kasih!</h3>
-             <p class="text-gray-500 dark:text-neutral-400 mt-2 max-w-2xl">Anda telah menyelesaikan semua pertanyaan. Hasil Anda sedang diproses.</p>
-        </div>
+            <!-- All questions answered -->
+            <div class="flex-grow flex flex-col items-center justify-center text-center px-4">
+                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">Terima kasih!</h3>
+                <p class="text-gray-500 dark:text-neutral-400 mt-2 max-w-2xl">Anda telah menyelesaikan semua pertanyaan. Hasil Anda sedang diproses.</p>
+            </div>
         @endif
 
-
         <!-- Footer Spacer -->
-        <div class="flex-shrink-0 mt-6 h-[38px]">
-            <!-- This div is a spacer to align the layout with/without the 'Berikutnya' button -->
-        </div>
+        <div class="flex-shrink-0 mt-6 h-[38px]"></div>
     </div>
 
     <!-- Summary Card -->
     <div class="lg:col-span-1 bg-white/30 dark:bg-neutral-800/30 backdrop-blur-lg border border-white/40 dark:border-white/10 p-6 rounded-xl shadow-md flex flex-col">
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white flex-shrink-0">Ringkasan Jawaban</h3>
         <div class="mt-4 flex-grow overflow-y-auto">
-            @if($answers->isEmpty())
+            @if(empty($jawabanUser))
                 <ul class="space-y-3">
                     <li class="flex justify-between items-center text-sm text-gray-400 dark:text-neutral-500">
                         <span>Belum ada jawaban yang diberikan.</span>
@@ -142,12 +229,10 @@ new class extends Component {
                 </ul>
             @else
                 <ul class="space-y-3">
-                    @foreach($answers as $step => $answer)
-                        <li class="flex justify-between items-center text-sm text-gray-700 dark:text-neutral-300">
-                            <span class="font-medium">Pertanyaan #{{ $step }}:</span>
-                            <span class="font-bold {{ $answer ? 'text-green-500' : 'text-red-500' }}">
-                                {{ $answer ? 'Ya' : 'Tidak' }}
-                            </span>
+                    @foreach($jawabanUser as $item)
+                        <li class="text-sm text-gray-700 dark:text-neutral-300">
+                            <span class="font-medium">{{ Str::limit($item['pertanyaan'], 40) }}:</span>
+                            <span class="block font-bold text-primary dark:text-blue-400">{{ $item['jawaban'] }}</span>
                         </li>
                     @endforeach
                 </ul>

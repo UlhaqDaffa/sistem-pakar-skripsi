@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Database\Seeders\AdminUserSeeder;
+use Database\Seeders\KonsultasiSeeder;
+use Illuminate\Support\Facades\DB;
 
 
 class DatabaseSeeder extends Seeder
@@ -16,15 +18,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        User::truncate();
+
         $this->call(AdminUserSeeder::class);
+
+        $this->call(KonsultasiSeeder::class);
 
         // User::factory(10)->create();
 
-        // User::factory()->create([
-        //     'name' => 'Test admin',
-        //     'email' => 'test@example.com',
-        //     'role' => 'admin',
-        //     'password' => Hash::make('test1234'),
-        // ]);
+        User::factory()->create([
+            'name' => 'User',
+            'email' => 'user@example.com',
+            'password' => Hash::make('test1234'),
+        ]);
+
     }
 }
