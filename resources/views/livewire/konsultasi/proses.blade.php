@@ -4,6 +4,7 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
 use App\Models\Konsultasi;
+use App\Models\PilganDetail;
 use App\Models\KonsultasiDetail;
 use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
@@ -17,12 +18,12 @@ new class extends Component {
 
     public int $tahapIndex = 0;
     public int $pertanyaanIndex = 0;
-    public string $nilaiInput = '';
-
+    public int $iteration = 0;
     public function mount(): void
     {
         $this->konsultasi = Konsultasi::create(['user_id' => auth()->id()]);
         $this->kategoriPertanyaan = KategoriPertanyaan::orderBy('id')->get();
+        $this->pertanyaanIndex = 0;
         $this->loadTahap();
     }
 
@@ -37,7 +38,6 @@ new class extends Component {
             ->with('jawaban')
             ->orderBy('urutan')
             ->get();
-        $this->pertanyaanIndex = 0;
     }
 
     public function pilihJawaban(int $jawabanId): void
@@ -45,8 +45,7 @@ new class extends Component {
         KonsultasiDetail::create([
             'konsultasi_id' => $this->konsultasi->id,
             'pertanyaan_id' => $this->pertanyaanSekarang->id,
-            'jawaban_id' => $jawabanId,
-            'nilai_input_pengguna' => null,
+            'jawaban_id' => $jawabanId
         ]);
 
         $this->jawabanUser[] = [
@@ -57,32 +56,12 @@ new class extends Component {
         $this->next();
     }
 
-    public function submitNilai(): void
-    {
-        // Validasi
-        // $this->validate(['nilaiInput' => 'required|numeric|between:0,100']);
-
-        KonsultasiDetail::create([
-            'konsultasi_id' => $this->konsultasi->id,
-            'pertanyaan_id' => $this->pertanyaanSekarang->id,
-            'jawaban_id' => null,
-            'nilai_input_pengguna' => $this->nilaiInput,
-        ]);
-
-        $this->jawabanUser[] = [
-            'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
-            'jawaban' => 'Nilai: ' . $this->nilaiInput,
-        ];
-
-        $this->nilaiInput = ''; // Reset input
-        $this->next();
-    }
-
     private function next(): void
     {
         $this->pertanyaanIndex++;
         if ($this->pertanyaanIndex >= $this->semuaPertanyaan->count()) {
             $this->tahapIndex++;
+            $this->pertanyaanIndex = 0;
             $this->loadTahap();
         }
     }
@@ -174,33 +153,18 @@ new class extends Component {
 
         @if($this->pertanyaanSekarang)
             <!-- Question Area -->
-            <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="question-{{ $this->pertanyaanSekarang->id }}">
+            <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="tahap-{{ $this->tahapIndex }}-pertanyaan-{{ $this->pertanyaanIndex }}">
                 <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang->teks_pertanyaan }}</h3>
 
                 <!-- Answer Options -->
                 <div class="mt-8 flex flex-wrap justify-center items-center gap-4">
 
-                    @if($this->pertanyaanSekarang->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang->tipe_jawaban === 'skala_likert')
+                    @if($this->pertanyaanSekarang->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang->tipe_jawaban === 'skala_likert' || $this->pertanyaanSekarang->tipe_jawaban === 'input_nilai')
                         @foreach($this->pertanyaanSekarang->jawaban as $jawaban)
-                            <button wire:click="pilihJawaban({{ $jawaban->id }})" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
+                            <button wire:click="pilihJawaban({{ $jawaban->id }})" wire:key="jawaban-{{ $jawaban->id }}" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
                                 {{ $jawaban->teks_jawaban }}
                             </button>
                         @endforeach
-
-                    @elseif($this->pertanyaanSekarang->tipe_jawaban === 'input_nilai')
-                        <div class="flex flex-col sm:flex-row items-center gap-4">
-                            <input
-                                type="text"
-                                wire:model.defer="nilaiInput"
-                                placeholder="Contoh: 85"
-                                @keydown.enter="submitNilai"
-                                class="text-center bg-white/50 dark:bg-neutral-700/50 border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 dark:text-white focus:ring-primary focus:border-primary">
-                            <button
-                                wire:click="submitNilai"
-                                class="px-8 py-3 text-lg font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
-                                Lanjutkan
-                            </button>
-                        </div>
                     @endif
 
                 </div>

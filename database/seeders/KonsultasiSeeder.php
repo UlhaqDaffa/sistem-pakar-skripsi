@@ -41,6 +41,19 @@ class KonsultasiSeeder extends Seeder
             ['Tidak Tertarik', 1],
         ]);
 
+        $pertanyaanMinat2 = Pertanyaan::create([
+            'kategori_id' => $kategoriMinat->id,
+            'teks_pertanyaan' => 'Seberapa tertarik Anda dengan bidang pengembangan aplikasi web?',
+            'tipe_jawaban' => 'pilihan_ganda',
+            'urutan' => 2,
+        ]);
+        $this->createJawaban($pertanyaanMinat2->id, [
+            ['Sangat Tertarik', 4],
+            ['Tertarik', 3],
+            ['Cukup Tertarik', 2],
+            ['Tidak Tertarik', 1],
+        ]);
+
         // 2. Kategori: Asesmen Kemampuan
         $kategoriAsesmen = KategoriPertanyaan::create([
             'nama_kategori' => 'Asesmen Kemampuan',
@@ -77,22 +90,79 @@ class KonsultasiSeeder extends Seeder
         // 3. Kategori: Input Nilai
         $kategoriNilai = KategoriPertanyaan::create([
             'nama_kategori' => 'Input Nilai',
-            'deskripsi' => 'Input nilai mata kuliah yang relevan untuk analisis decision tree.'
+            'deskripsi' => 'Input nilai mata kuliah terakhir anda'
         ]);
 
-        Pertanyaan::create([
+        $inputnilai1 = Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah "Struktur Data & Algoritma" Anda (skala 0-100).',
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Struktur Data & Algoritma Anda (skala A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 1,
         ]);
+        $this->createJawaban($inputnilai1->id, [
+            ['A', 5],
+            ['B', 4],
+            ['C', 3],
+            ['D', 2],
+            ['E', 1]
+        ]);
 
-        Pertanyaan::create([
+        $inputnilai2 = Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah "Basis Data" Anda (skala 0-100).',
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Pemrograman Anda (skala A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 2,
         ]);
+        $this->createJawaban($inputnilai2->id, [
+            ['A', 5],
+            ['B', 4],
+            ['C', 3],
+            ['D', 2],
+            ['E', 1]
+        ]);
+
+        $inputnilai3 =Pertanyaan::create([
+            'kategori_id' => $kategoriNilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Jaringan Komputer Anda (skala A-B-C-D-E).',
+            'tipe_jawaban' => 'input_nilai',
+            'urutan' => 3,
+        ]);
+        $this->createJawaban($inputnilai3->id, [
+            ['A', 5],
+            ['B', 4],
+            ['C', 3],
+            ['D', 2],
+            ['E', 1]
+        ]);
+
+        $inputnilai4 =Pertanyaan::create([
+            'kategori_id' => $kategoriNilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Kecerdasan Buatan Anda (skala A-B-C-D-E).',
+            'tipe_jawaban' => 'input_nilai',
+            'urutan' => 4,
+        ]);
+        $this->createJawaban($inputnilai4->id, [
+            ['A', 5],
+            ['B', 4],
+            ['C', 3],
+            ['D', 2],
+            ['E', 1]
+        ]);
+
+        $inputnilai5 = Pertanyaan::create([
+            'kategori_id' => $kategoriNilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Basis Data Anda (skala A-B-C-D-E).',
+            'tipe_jawaban' => 'input_nilai',
+            'urutan' => 5,
+        ]);
+        $this->createJawaban($inputnilai5->id, [
+            ['A', 5],
+            ['B', 4],
+            ['C', 3],
+            ['D', 2],
+            ['E', 1]
+        ]);
+
     }
 
     private function createJawaban(int $pertanyaanId, array $jawabanData): void

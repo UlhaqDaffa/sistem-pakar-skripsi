@@ -78,7 +78,8 @@ return new class extends Migration
         Schema::create('konsultasi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->text('hasil_konsultasi')->nullable();
+            $table->text('kesimpulan')->nullable();
+            $table->text('topik_rekomendasi')->nullable();
             $table->timestamps();
         });
 
@@ -87,7 +88,6 @@ return new class extends Migration
             $table->foreignId('konsultasi_id')->constrained('konsultasi')->cascadeOnDelete();
             $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
             $table->foreignId('jawaban_id')->nullable()->constrained('jawaban')->cascadeOnDelete();
-            $table->string('nilai_input_pengguna')->nullable();
             $table->timestamps();
         });
     }
