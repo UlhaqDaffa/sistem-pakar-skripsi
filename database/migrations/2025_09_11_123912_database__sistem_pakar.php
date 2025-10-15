@@ -51,6 +51,21 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('jenis_jawaban', function (Blueprint $table) {
+            $table->id();
+            $table->string('jenis');
+            $table->text('deskripsi')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('opsi_jawaban', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('jenis_jawaban_id')->constrained('jenis_jawaban')->cascadeOnDelete();
+            $table->string('teks_jawaban');
+            $table->integer('nilai')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('kategori_pertanyaan', function (Blueprint $table) {
             $table->id();
             $table->string('nama_kategori');
@@ -60,20 +75,14 @@ return new class extends Migration
 
         Schema::create('pertanyaan', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('jenis_jawaban_id')->constrained('jenis_jawaban')->cascadeOnDelete();
             $table->foreignId('kategori_id')->constrained('kategori_pertanyaan')->cascadeOnDelete();
-            $table->text('teks_pertanyaan');
-            $table->enum('tipe_jawaban', ['pilihan_ganda', 'skala_likert', 'input_nilai']);
-            $table->integer('urutan')->default(0);
+            $table->string('teks_pertanyaan');
+            $table->enum('tipe_jawaban', ['pilihan_ganda', 'input_nilai']);
+            $table->integer('urutan')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('jawaban', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
-            $table->string('teks_jawaban');
-            $table->integer('nilai')->nullable();
-            $table->timestamps();
-        });
 
         Schema::create('konsultasi', function (Blueprint $table) {
             $table->id();
@@ -87,7 +96,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('konsultasi_id')->constrained('konsultasi')->cascadeOnDelete();
             $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
-            $table->foreignId('jawaban_id')->nullable()->constrained('jawaban')->cascadeOnDelete();
+            $table->foreignId('opsi_jawaban_id')->nullable()->constrained('opsi_jawaban')->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -99,9 +108,10 @@ return new class extends Migration
     {
         Schema::dropIfExists('konsultasi_detail');
         Schema::dropIfExists('konsultasi');
-        Schema::dropIfExists('jawaban');
-        Schema::dropIfExists('pertanyaan');
+        Schema::dropIfExists('opsi_jawaban');
+        Schema::dropIfExists('jenis_jawaban');
         Schema::dropIfExists('kategori_pertanyaan');
+        Schema::dropIfExists('pertanyaan');
         Schema::dropIfExists('kondisi_aturan');
         Schema::dropIfExists('aturan_rbs');
         Schema::dropIfExists('topik_penelitian');

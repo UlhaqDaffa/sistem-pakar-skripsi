@@ -7,7 +7,7 @@ use App\Models\Konsultasi;
 use App\Models\KonsultasiDetail;
 use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
-use App\Models\Jawaban;
+use App\Models\OpsiJawaban;
 
 new class extends Component {
     public ?Konsultasi $konsultasi;
@@ -34,22 +34,22 @@ new class extends Component {
         }
         $kategoriId = $this->kategoriPertanyaan[$this->tahapIndex]->id;
         $this->semuaPertanyaan = Pertanyaan::where('kategori_id', $kategoriId)
-            ->with('jawaban')
+            ->with('opsiJawaban')
             ->orderBy('urutan')
             ->get();
     }
 
-    public function pilihJawaban(int $jawabanId): void
+    public function pilihJawaban(int $opsiJawabanId): void
     {
         KonsultasiDetail::create([
             'konsultasi_id' => $this->konsultasi->id,
             'pertanyaan_id' => $this->pertanyaanSekarang()->id,
-            'jawaban_id' => $jawabanId
+            'opsi_jawaban_id' => $opsiJawabanId
         ]);
 
         $this->jawabanUser[] = [
             'pertanyaan' => $this->pertanyaanSekarang()->teks_pertanyaan,
-            'jawaban' => Jawaban::find($jawabanId)->teks_jawaban,
+            'jawaban' => OpsiJawaban::find($opsiJawabanId)->teks_jawaban,
         ];
 
         $this->next();
@@ -68,7 +68,7 @@ new class extends Component {
     public function finishConsultation(): void
     {
         // Tambahin logika untuk proses model decision tree disini
-        $this->konsultasi->update(['hasil_konsultasi' => 'Menunggu proses analisis...']);
+        $this->konsultasi->update(['kesimpulan' => 'Menunggu proses analisis...']);
         $this->redirect(route('konsultasi.hasil', ['konsultasi' => $this->konsultasi->id]), navigate: true);
     }
 
@@ -157,10 +157,10 @@ new class extends Component {
                 <!-- Answer Options -->
                 <div class="mt-8 flex flex-wrap justify-center items-center gap-4">
 
-                    @if($this->pertanyaanSekarang()->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang()->tipe_jawaban === 'skala_likert' || $this->pertanyaanSekarang()->tipe_jawaban === 'input_nilai')
-                        @foreach($this->pertanyaanSekarang()->jawaban as $jawaban)
-                            <button wire:click="pilihJawaban({{ $jawaban->id }})" wire:key="jawaban-{{ $jawaban->id }}" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
-                                {{ $jawaban->teks_jawaban }}
+                    @if($this->pertanyaanSekarang()->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang()->tipe_jawaban === 'input_nilai')
+                        @foreach($this->pertanyaanSekarang()->opsiJawaban as $opsi)
+                            <button wire:click="pilihJawaban({{ $opsi->id }})" wire:key="jawaban-{{ $opsi->id }}" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
+                                {{ $opsi->teks_jawaban }}
                             </button>
                         @endforeach
                     @endif

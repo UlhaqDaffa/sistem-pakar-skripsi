@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Jawaban;
 use App\Models\KategoriPertanyaan;
+use App\Models\OpsiJawaban;
 use App\Models\Pertanyaan;
+use App\Models\JenisJawaban;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -19,157 +20,143 @@ class KonsultasiSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         KategoriPertanyaan::truncate();
         Pertanyaan::truncate();
-        Jawaban::truncate();
+        JenisJawaban::truncate();
+        OpsiJawaban::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        // 1. Kategori: Minat Bidang
-        $kategoriMinat = KategoriPertanyaan::create([
-            'nama_kategori' => 'Minat Bidang',
-            'deskripsi' => 'Pertanyaan untuk mengetahui minat mahasiswa terhadap bidang-bidang dalam teknik informatika.'
+        // 1. Skala Jawaban: Minat
+        $Minat = JenisJawaban::create([
+            'jenis' => 'Minat',
+            'deskripsi' => 'Jawaban untuk mengukur tingkat ketertarikan.',
         ]);
-
-        $pertanyaanMinat1 = Pertanyaan::create([
-            'kategori_id' => $kategoriMinat->id,
-            'teks_pertanyaan' => 'Seberapa tertarik Anda dengan bidang Rekayasa Perangkat Lunak (Software Engineering)?',
-            'tipe_jawaban' => 'pilihan_ganda',
-            'urutan' => 1,
-        ]);
-        $this->createJawaban($pertanyaanMinat1->id, [
+        $this->createOpsiJawaban($Minat->id, [
             ['Sangat Tertarik', 4],
             ['Tertarik', 3],
             ['Cukup Tertarik', 2],
             ['Tidak Tertarik', 1],
         ]);
 
-        $pertanyaanMinat2 = Pertanyaan::create([
-            'kategori_id' => $kategoriMinat->id,
-            'teks_pertanyaan' => 'Seberapa tertarik Anda dengan bidang pengembangan aplikasi web?',
-            'tipe_jawaban' => 'pilihan_ganda',
-            'urutan' => 2,
+        // 2.  Jawaban: Pemahaman
+        $Pemahaman = JenisJawaban::create([
+            'jenis' => 'Asesmen',
+            'deskripsi' => 'Jawaban untuk mengukur tingkat pemahaman.',
         ]);
-        $this->createJawaban($pertanyaanMinat2->id, [
-            ['Sangat Tertarik', 4],
-            ['Tertarik', 3],
-            ['Cukup Tertarik', 2],
-            ['Tidak Tertarik', 1],
-        ]);
-
-        // 2. Kategori: Asesmen Kemampuan
-        $kategoriAsesmen = KategoriPertanyaan::create([
-            'nama_kategori' => 'Asesmen Kemampuan',
-            'deskripsi' => 'Pertanyaan untuk mengevaluasi pemahaman dan kemampuan teknis mahasiswa.'
-        ]);
-
-        $pertanyaanAsesmen1 = Pertanyaan::create([
-            'kategori_id' => $kategoriAsesmen->id,
-            'teks_pertanyaan' => 'Bagaimana tingkat pemahaman Anda tentang konsep Object-Oriented Programming (OOP)?',
-            'tipe_jawaban' => 'pilihan_ganda',
-            'urutan' => 1,
-        ]);
-        $this->createJawaban($pertanyaanAsesmen1->id, [
+        $this->createOpsiJawaban($Pemahaman->id, [
             ['Sangat Paham', 4],
             ['Paham', 3],
             ['Cukup Paham', 2],
             ['Kurang Paham', 1],
         ]);
 
-        $pertanyaanAsesmen2 = Pertanyaan::create([
+        // 3.  Jawaban: Nilai
+        $Nilai = JenisJawaban::create([
+            'jenis' => 'Nilai',
+            'deskripsi' => 'Jawaban untuk input nilai A-E.',
+        ]);
+        $this->createOpsiJawaban($Nilai->id, [
+            ['A', 5],
+            ['B', 4],
+            ['C', 3],
+            ['D', 2],
+            ['E', 1],
+        ]);
+
+        // Kategori 1: Minat Bidang
+        $kategoriMinat = KategoriPertanyaan::create([
+            'nama_kategori' => 'Minat Bidang',
+            'deskripsi' => 'Pertanyaan untuk mengetahui minat mahasiswa terhadap bidang-bidang dalam teknik informatika.'
+        ]);
+
+        Pertanyaan::create([
+            'kategori_id' => $kategoriMinat->id,
+            'jenis_jawaban_id' => $Minat->id,
+            'teks_pertanyaan' => 'Seberapa tertarik Anda dengan bidang Rekayasa Perangkat Lunak (Software Engineering)?',
+            'tipe_jawaban' => 'pilihan_ganda',
+            'urutan' => 1,
+        ]);
+
+        Pertanyaan::create([
+            'kategori_id' => $kategoriMinat->id,
+            'jenis_jawaban_id' => $Minat->id,
+            'teks_pertanyaan' => 'Seberapa tertarik Anda dengan bidang pengembangan aplikasi web?',
+            'tipe_jawaban' => 'pilihan_ganda',
+            'urutan' => 2,
+        ]);
+
+        // Kategori 2: Asesmen Kemampuan
+        $kategoriAsesmen = KategoriPertanyaan::create([
+            'nama_kategori' => 'Asesmen Kemampuan',
+            'deskripsi' => 'Pertanyaan untuk mengevaluasi pemahaman dan kemampuan teknis mahasiswa.'
+        ]);
+
+        Pertanyaan::create([
             'kategori_id' => $kategoriAsesmen->id,
+            'jenis_jawaban_id' => $Pemahaman->id,
+            'teks_pertanyaan' => 'Bagaimana tingkat pemahaman Anda tentang konsep Object-Oriented Programming (OOP)?',
+            'tipe_jawaban' => 'pilihan_ganda',
+            'urutan' => 1,
+        ]);
+
+        Pertanyaan::create([
+            'kategori_id' => $kategoriAsesmen->id,
+            'jenis_jawaban_id' => $Pemahaman->id,
             'teks_pertanyaan' => 'Seberapa mahir Anda dalam menggunakan sistem basis data dan bahasa SQL?',
             'tipe_jawaban' => 'pilihan_ganda',
             'urutan' => 2,
         ]);
-        $this->createJawaban($pertanyaanAsesmen2->id, [
-            ['Sangat Mahir', 4],
-            ['Mahir', 3],
-            ['Cukup Mahir', 2],
-            ['Kurang Mahir', 1],
-        ]);
 
-
-        // 3. Kategori: Input Nilai
+        // Kategori 3: Input Nilai
         $kategoriNilai = KategoriPertanyaan::create([
             'nama_kategori' => 'Input Nilai',
             'deskripsi' => 'Input nilai mata kuliah terakhir anda'
         ]);
 
-        $inputnilai1 = Pertanyaan::create([
+        Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Struktur Data & Algoritma Anda (skala A-B-C-D-E).',
+            'jenis_jawaban_id' => $Nilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Struktur Data & Algoritma Anda (A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 1,
         ]);
-        $this->createJawaban($inputnilai1->id, [
-            ['A', 5],
-            ['B', 4],
-            ['C', 3],
-            ['D', 2],
-            ['E', 1]
-        ]);
 
-        $inputnilai2 = Pertanyaan::create([
+        Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Pemrograman Anda (skala A-B-C-D-E).',
+            'jenis_jawaban_id' => $Nilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Pemrograman Anda (A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 2,
         ]);
-        $this->createJawaban($inputnilai2->id, [
-            ['A', 5],
-            ['B', 4],
-            ['C', 3],
-            ['D', 2],
-            ['E', 1]
-        ]);
 
-        $inputnilai3 =Pertanyaan::create([
+        Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Jaringan Komputer Anda (skala A-B-C-D-E).',
+            'jenis_jawaban_id' => $Nilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Jaringan Komputer Anda (A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 3,
         ]);
-        $this->createJawaban($inputnilai3->id, [
-            ['A', 5],
-            ['B', 4],
-            ['C', 3],
-            ['D', 2],
-            ['E', 1]
-        ]);
 
-        $inputnilai4 =Pertanyaan::create([
+        Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Kecerdasan Buatan Anda (skala A-B-C-D-E).',
+            'jenis_jawaban_id' => $Nilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Kecerdasan Buatan Anda (A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 4,
         ]);
-        $this->createJawaban($inputnilai4->id, [
-            ['A', 5],
-            ['B', 4],
-            ['C', 3],
-            ['D', 2],
-            ['E', 1]
-        ]);
 
-        $inputnilai5 = Pertanyaan::create([
+        Pertanyaan::create([
             'kategori_id' => $kategoriNilai->id,
-            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Basis Data Anda (skala A-B-C-D-E).',
+            'jenis_jawaban_id' => $Nilai->id,
+            'teks_pertanyaan' => 'Masukkan nilai mata kuliah Basis Data Anda (A-B-C-D-E).',
             'tipe_jawaban' => 'input_nilai',
             'urutan' => 5,
         ]);
-        $this->createJawaban($inputnilai5->id, [
-            ['A', 5],
-            ['B', 4],
-            ['C', 3],
-            ['D', 2],
-            ['E', 1]
-        ]);
-
     }
 
-    private function createJawaban(int $pertanyaanId, array $jawabanData): void
+    private function createOpsiJawaban(int $skalaId, array $opsiData): void
     {
-        foreach ($jawabanData as $data) {
-            Jawaban::create([
-                'pertanyaan_id' => $pertanyaanId,
+        foreach ($opsiData as $data) {
+            OpsiJawaban::create([
+                'jenis_jawaban_id' => $skalaId,
                 'teks_jawaban' => $data[0],
                 'nilai' => $data[1],
             ]);
