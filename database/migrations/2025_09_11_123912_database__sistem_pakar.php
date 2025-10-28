@@ -7,10 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Jalankan migrasi.
      */
     public function up(): void
     {
+        // === TABEL INTI PENGGUNA ===
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -22,99 +23,93 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('topik_penelitian', function (Blueprint $table) {
-            $table->id('id_topik');
-            $table->string('judul');
-            $table->string('deskripsi');
-            $table->string('kategori');
-            $table->timestamps();
-        });
-
-        Schema::create('aturan_rbs', function (Blueprint $table) {
-            $table->id('id_aturan');
-            $table->string('kode_aturan')->unique();
-            $table->string('nama_aturan');
-            $table->timestamps();
-        });
-
-        Schema::create('kondisi_aturan', function (Blueprint $table) {
-            $table->id('id_kondisi');
-            $table->unsignedBigInteger('id_aturan');
-            $table->foreign('id_aturan')
-                ->references('id_aturan')
-                ->on('aturan_rbs')
-                ->onDelete('cascade')
-                ->onUpdate('cascade');
-            $table->string('faktor');
-            $table->string('operator');
-            $table->string('nilai');
-            $table->timestamps();
-        });
-
-        Schema::create('jenis_jawaban', function (Blueprint $table) {
+        // 1. Kategori Minat Luas
+        Schema::create('minat_bidang', function (Blueprint $table) {
             $table->id();
-            $table->string('jenis');
+            $table->string('kode_bidang')->unique()->comment('Contoh: WEB_DEV, AI_ML');
+            $table->string('nama_bidang');
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('opsi_jawaban', function (Blueprint $table) {
+        // 2. Area Riset Spesifik
+        Schema::create('area_riset', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jenis_jawaban_id')->constrained('jenis_jawaban')->cascadeOnDelete();
-            $table->string('teks_jawaban');
-            $table->integer('nilai')->nullable();
+            $table->string('kode_area')->unique()->comment('Contoh: SISTEM_REKOMENDASI');
+            $table->foreignId('minat_bidang_id')->constrained('minat_bidang')->cascadeOnDelete();
+            $table->string('nama_area');
+            $table->text('deskripsi');
+            $table->text('kata_kunci_teknologi')->comment('Contoh: Python, Scikit-learn, Pandas');
+            $table->text('kata_kunci_metode')->comment('Contoh: Collaborative Filtering, KNN');
+            $table->text('contoh_studi_kasus')->comment('Contoh: Rekomendasi Film, E-commerce');
             $table->timestamps();
         });
 
+
+        // === TABEL UNTUK KUESIONER RULE-BASED ===
+
+        // Kategori untuk mengelompokkan pertanyaan (Umum, Minat, Asesmen)
         Schema::create('kategori_pertanyaan', function (Blueprint $table) {
             $table->id();
+            $table->string('kode_kategori')->unique();
             $table->string('nama_kategori');
-            $table->text('deskripsi')->nullable();
+            $table->enum('tipe', ['umum', 'minat', 'asesmen']);
+            $table->string('deskripsi')->nullable();
             $table->timestamps();
         });
 
+        // Tabel utama untuk semua pertanyaan
         Schema::create('pertanyaan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jenis_jawaban_id')->constrained('jenis_jawaban')->cascadeOnDelete();
             $table->foreignId('kategori_id')->constrained('kategori_pertanyaan')->cascadeOnDelete();
-            $table->string('teks_pertanyaan');
-            $table->enum('tipe_jawaban', ['pilihan_ganda', 'input_nilai']);
-            $table->integer('urutan')->nullable();
+            $table->string('kode_pertanyaan')->unique();
+            $table->text('teks_pertanyaan');
+            $table->boolean('is_start_point')->default(false)->comment('Penanda pertanyaan paling pertama');
+            $table->timestamps();
+        });
+
+        // Tabel untuk opsi jawaban dari pertanyaan
+        Schema::create('opsi_jawaban', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
+            $table->string('kode_jawaban');
+            $table->string('teks_jawaban');
+            $table->integer('nilai')->comment('Untuk skala Likert atau pembobotan lainnya');
             $table->timestamps();
         });
 
 
+        // === TABEL PENCATATAN RIWAYAT KONSULTASI ===
         Schema::create('konsultasi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->text('kesimpulan')->nullable();
-            $table->text('topik_rekomendasi')->nullable();
+            $table->enum('status', ['selesai', 'berjalan'])->default('berjalan');
+            $table->foreignId('hasil_minat_id')->nullable()->constrained('area_riset')->nullOnDelete();
+            $table->foreignId('hasil_akademik_id')->nullable()->constrained('area_riset')->nullOnDelete();
             $table->timestamps();
         });
 
-        Schema::create('konsultasi_detail', function (Blueprint $table) {
+        Schema::create('jawaban_konsultasi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('konsultasi_id')->constrained('konsultasi')->cascadeOnDelete();
-            $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
-            $table->foreignId('opsi_jawaban_id')->nullable()->constrained('opsi_jawaban')->cascadeOnDelete();
+            $table->foreignId('opsi_jawaban_id')->constrained('opsi_jawaban')->cascadeOnDelete();
             $table->timestamps();
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Batalkan migrasi.
      */
     public function down(): void
     {
-        Schema::dropIfExists('konsultasi_detail');
+        Schema::dropIfExists('jawaban_konsultasi');
         Schema::dropIfExists('konsultasi');
         Schema::dropIfExists('opsi_jawaban');
-        Schema::dropIfExists('jenis_jawaban');
-        Schema::dropIfExists('kategori_pertanyaan');
         Schema::dropIfExists('pertanyaan');
-        Schema::dropIfExists('kondisi_aturan');
-        Schema::dropIfExists('aturan_rbs');
-        Schema::dropIfExists('topik_penelitian');
+        Schema::dropIfExists('kategori_pertanyaan');
+        Schema::dropIfExists('area_riset_minat_bidang');
+        Schema::dropIfExists('area_riset');
+        Schema::dropIfExists('minat_bidang');
         Schema::dropIfExists('users');
     }
 };

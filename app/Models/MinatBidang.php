@@ -6,19 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class JenisJawaban extends Model
+class MinatBidang extends Model
 {
     use HasFactory;
 
-    protected $table = 'jenis_jawaban';
+    protected $table = 'minat_bidang';
 
     protected $fillable = [
-        'jenis',
+        'kode_bidang',
+        'nama_bidang',
         'deskripsi',
     ];
 
-    public function opsiJawaban(): HasMany
+    public function areaRisets(): HasMany
     {
-        return $this->hasMany(OpsiJawaban::class, 'jenis_jawaban_id');
+        return $this->hasMany(AreaRiset::class);
     }
 }

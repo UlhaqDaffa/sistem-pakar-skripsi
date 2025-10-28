@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OpsiJawaban extends Model
 {
@@ -13,13 +14,19 @@ class OpsiJawaban extends Model
     protected $table = 'opsi_jawaban';
 
     protected $fillable = [
-        'skala_jawaban_id',
+        'pertanyaan_id',
+        'kode_jawaban',
         'teks_jawaban',
         'nilai',
     ];
 
-    public function jenisJawaban(): BelongsTo
+    public function pertanyaan(): BelongsTo
     {
-        return $this->belongsTo(JenisJawaban::class, 'jenis_jawaban_id');
+        return $this->belongsTo(Pertanyaan::class);
+    }
+
+    public function jawabanKonsultasis(): HasMany
+    {
+        return $this->hasMany(JawabanKonsultasi::class);
     }
 }

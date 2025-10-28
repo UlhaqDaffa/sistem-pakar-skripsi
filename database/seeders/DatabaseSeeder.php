@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Database\Seeders\AdminUserSeeder;
-use Database\Seeders\KonsultasiSeeder;
 // use Database\Seeders\MatkulSeeder;
 use Illuminate\Support\Facades\DB;
 
@@ -23,8 +22,7 @@ class DatabaseSeeder extends Seeder
         User::truncate();
 
         $this->call(AdminUserSeeder::class);
-
-        $this->call(KonsultasiSeeder::class);
+        $this->call(KuesionerSeeder::class);
 
         // $this->call(MatkulSeeder::class);
 

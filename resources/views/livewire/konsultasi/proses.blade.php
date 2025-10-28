@@ -4,71 +4,122 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Collection;
 use App\Models\Konsultasi;
-use App\Models\KonsultasiDetail;
+use App\Models\JawabanKonsultasi;
 use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawaban;
 
 new class extends Component {
     public ?Konsultasi $konsultasi;
-    public Collection $kategoriPertanyaan;
-    public Collection $semuaPertanyaan;
+    public ?Pertanyaan $pertanyaanSekarang = null;
     public array $jawabanUser = [];
+    public int $progress = 0;
 
-    public int $tahapIndex = 0;
-    public int $pertanyaanIndex = 0;
-    public int $iteration = 0;
+    // State
+    public ?string $archetype = null;
+    public ?string $minat = null;
+    public array $antrianAsesmen = [];
+    public int $asesmenIndex = 0;
+
     public function mount(): void
     {
         $this->konsultasi = Konsultasi::create(['user_id' => auth()->id()]);
-        $this->kategoriPertanyaan = KategoriPertanyaan::orderBy('id')->get();
-        $this->pertanyaanIndex = 0;
-        $this->loadTahap();
-    }
+        $this->pertanyaanSekarang = Pertanyaan::where('is_start_point', true)->with('opsiJawaban', 'kategori')->first();
 
-    public function loadTahap(): void
-    {
-        if ($this->tahapIndex >= $this->kategoriPertanyaan->count()) {
+        if (!$this->pertanyaanSekarang) {
+            // Handle jika tidak ada pertanyaan awal, mungkin redirect atau tampilkan error
             $this->finishConsultation();
-            return;
         }
-        $kategoriId = $this->kategoriPertanyaan[$this->tahapIndex]->id;
-        $this->semuaPertanyaan = Pertanyaan::where('kategori_id', $kategoriId)
-            ->with('opsiJawaban')
-            ->orderBy('urutan')
-            ->get();
     }
 
     public function pilihJawaban(int $opsiJawabanId): void
     {
-        KonsultasiDetail::create([
+        // 1. Simpan jawaban
+        JawabanKonsultasi::create([
             'konsultasi_id' => $this->konsultasi->id,
-            'pertanyaan_id' => $this->pertanyaanSekarang()->id,
-            'opsi_jawaban_id' => $opsiJawabanId
+            'opsi_jawaban_id' => $opsiJawabanId,
         ]);
 
+        $opsiTerpilih = OpsiJawaban::find($opsiJawabanId);
+
+        // 2. Tambahkan ke ringkasan jawaban di UI
         $this->jawabanUser[] = [
-            'pertanyaan' => $this->pertanyaanSekarang()->teks_pertanyaan,
-            'jawaban' => OpsiJawaban::find($opsiJawabanId)->teks_jawaban,
+            'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
+            'jawaban' => $opsiTerpilih->teks_jawaban,
         ];
 
-        $this->next();
+        // 3. Tentukan langkah selanjutnya berdasarkan kategori pertanyaan saat ini
+        $kodeKategori = $this->pertanyaanSekarang->kategori->kode_kategori;
+
+        if ($kodeKategori === 'UMUM') {
+            $this->handleJawabanUmum($opsiTerpilih);
+        } elseif ($kodeKategori === 'MINAT') {
+            $this->handleJawabanMinat($opsiTerpilih);
+        } elseif ($kodeKategori === 'ASESMEN') {
+            $this->handleJawabanAsesmen();
+        }
     }
 
-    private function next(): void
+    private function handleJawabanUmum(OpsiJawaban $opsi): void
     {
-        $this->pertanyaanIndex++;
-        if ($this->pertanyaanIndex >= $this->semuaPertanyaan->count()) {
-            $this->tahapIndex++;
-            $this->pertanyaanIndex = 0;
-            $this->loadTahap();
+        // $opsi->kode_jawaban is 'ARKETIPE_CREATOR', 'ARKETIPE_ANALIS', etc.
+        $this->archetype = str_replace('ARKETIPE_', '', $opsi->kode_jawaban);
+
+        // Cari pertanyaan minat yang sesuai
+        $nextKodePertanyaan = 'MINAT_' . $this->archetype . '_01';
+        $this->pertanyaanSekarang = Pertanyaan::where('kode_pertanyaan', $nextKodePertanyaan)->with('opsiJawaban', 'kategori')->first();
+        $this->progress = 33;
+
+        if (!$this->pertanyaanSekarang) {
+            $this->finishConsultation();
+        }
+    }
+
+    private function handleJawabanMinat(OpsiJawaban $opsi): void
+    {
+        // $opsi->kode_jawaban is 'MINAT_WEB_DEV', 'MINAT_MOBILE_DEV', etc.
+        $this->minat = str_replace('MINAT_', '', $opsi->kode_jawaban);
+
+        // Cari semua pertanyaan asesmen yang sesuai
+        $asesmenKode = 'ASESMEN_' . $this->minat . '_%';
+        $this->antrianAsesmen = Pertanyaan::where('kode_pertanyaan', 'like', $asesmenKode)
+            ->with('opsiJawaban', 'kategori')
+            ->orderBy('id')
+            ->get()->all();
+
+        if (!empty($this->antrianAsesmen)) {
+            $this->asesmenIndex = 0;
+            $this->pertanyaanSekarang = $this->antrianAsesmen[$this->asesmenIndex];
+            $this->progress = 66;
+        } else {
+            // Jika tidak ada pertanyaan asesmen, langsung selesaikan
+            $this->finishConsultation();
+        }
+    }
+
+    private function handleJawabanAsesmen(): void
+    {
+        $this->asesmenIndex++;
+        if ($this->asesmenIndex < count($this->antrianAsesmen)) {
+            $this->pertanyaanSekarang = $this->antrianAsesmen[$this->asesmenIndex];
+            // Update progress di dalam tahap asesmen
+            $totalAsesmen = count($this->antrianAsesmen);
+            $this->progress = 66 + (int)(($this->asesmenIndex / $totalAsesmen) * 34);
+        } else {
+            $this->finishConsultation();
         }
     }
 
     public function finishConsultation(): void
     {
-        // Tambahin logika untuk proses model decision tree disini
-        $this->konsultasi->update(['kesimpulan' => 'Menunggu proses analisis...']);
+        $this->progress = 100;
+        $this->pertanyaanSekarang = null; // Tidak ada pertanyaan lagi
+
+        $this->konsultasi->status = 'selesai';
+        // Di sini Anda bisa menambahkan logika untuk menganalisis jawaban dan menyimpan hasil
+        // $this->konsultasi->hasil_minat_id = ...
+        $this->konsultasi->save();
+
         $this->redirect(route('konsultasi.hasil', ['konsultasi' => $this->konsultasi->id]), navigate: true);
     }
 
@@ -85,28 +136,40 @@ new class extends Component {
     }
 
     #[Computed]
-    public function kategoriSekarang(): ?KategoriPertanyaan
+    public function tahapSekarang(): array
     {
-        return $this->kategoriPertanyaan->get($this->tahapIndex);
-    }
-
-    public function pertanyaanSekarang(): ?Pertanyaan
-    {
-        return $this->semuaPertanyaan->get($this->pertanyaanIndex);
-    }
-
-    #[Computed]
-    public function progress(): int
-    {
-        $totalKategori = $this->kategoriPertanyaan->count();
-        if ($totalKategori === 0) return 0;
-        $progressTahap = ($this->tahapIndex / $totalKategori) * 100;
-        $totalPertanyaanDiTahap = $this->semuaPertanyaan->count();
-        if ($totalPertanyaanDiTahap > 0) {
-            $progressDiTahap = ($this->pertanyaanIndex / $totalPertanyaanDiTahap) * (100 / $totalKategori);
-            $progressTahap += $progressDiTahap;
+        if (!$this->pertanyaanSekarang) {
+            return [
+                'nama' => 'Menyelesaikan Konsultasi',
+                'deskripsi' => 'Hasil Anda sedang diproses.',
+                'pertanyaan_ke' => '',
+                'total_pertanyaan' => '',
+            ];
         }
-        return min(100, (int)$progressTahap);
+
+        $kategori = $this->pertanyaanSekarang->kategori;
+        $nama = "Tahap " . ($kategori->tipe === 'umum' ? 1 : ($kategori->tipe === 'minat' ? 2 : 3)) . ": " . $kategori->nama_kategori;
+        $deskripsi = $kategori->deskripsi;
+        $pertanyaan_ke = 1;
+        $total_pertanyaan = 1;
+
+        if ($kategori->tipe === 'asesmen') {
+            if ($this->minat) {
+                $nama_minat = str_replace('_', ' ', $this->minat);
+                $nama_minat = ucwords(strtolower($nama_minat));
+                $nama = "Tahap 3: Asesmen {$nama_minat}";
+                $deskripsi = "Mengukur pemahaman Anda di bidang {$nama_minat}.";
+            }
+            $pertanyaan_ke = $this->asesmenIndex + 1;
+            $total_pertanyaan = count($this->antrianAsesmen);
+        }
+
+        return [
+            'nama' => $nama,
+            'deskripsi' => $deskripsi,
+            'pertanyaan_ke' => $pertanyaan_ke,
+            'total_pertanyaan' => $total_pertanyaan,
+        ];
     }
 }; ?>
 
@@ -125,13 +188,8 @@ new class extends Component {
                     </svg>
                 </button>
                 <div>
-                    @if($this->kategoriSekarang)
-                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Tahap {{ $this->tahapIndex + 1 }}: {{ $this->kategoriSekarang->nama_kategori }}</h2>
-                        <p class="text-gray-600 dark:text-neutral-300 mt-1">{{ $this->kategoriSekarang->deskripsi }}</p>
-                    @else
-                        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Menyelesaikan Konsultasi</h2>
-                        <p class="text-gray-600 dark:text-neutral-300 mt-1">Hasil Anda sedang diproses.</p>
-                    @endif
+                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $this->tahapSekarang['nama'] }}</h2>
+                    <p class="text-gray-600 dark:text-neutral-300 mt-1">{{ $this->tahapSekarang['deskripsi'] }}</p>
                 </div>
             </div>
 
@@ -139,8 +197,10 @@ new class extends Component {
             <div class="mt-4">
                 <div class="flex justify-between mb-1">
                     <span class="text-base font-medium text-primary dark:text-blue-400">Proses Konsultasi</span>
-                    @if($this->kategoriSekarang && $this->semuaPertanyaan->count() > 0)
-                        <span class="text-sm font-medium text-primary dark:text-blue-400">Pertanyaan {{ $this->pertanyaanIndex + 1 }} dari {{ $this->semuaPertanyaan->count() }}</span>
+                    @if($this->tahapSekarang['total_pertanyaan'] > 0)
+                        <span class="text-sm font-medium text-primary dark:text-blue-400">
+                            Pertanyaan {{ $this->tahapSekarang['pertanyaan_ke'] }} dari {{ $this->tahapSekarang['total_pertanyaan'] }}
+                        </span>
                     @endif
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
@@ -149,22 +209,18 @@ new class extends Component {
             </div>
         </div>
 
-        @if($this->pertanyaanSekarang())
+        @if($this->pertanyaanSekarang)
             <!-- Question Area -->
-            <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="tahap-{{ $this->tahapIndex }}-pertanyaan-{{ $this->pertanyaanIndex }}">
-                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang()->teks_pertanyaan }}</h3>
+            <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="pertanyaan-{{ $this->pertanyaanSekarang->id }}">
+                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang->teks_pertanyaan }}</h3>
 
                 <!-- Answer Options -->
                 <div class="mt-8 flex flex-wrap justify-center items-center gap-4">
-
-                    @if($this->pertanyaanSekarang()->tipe_jawaban === 'pilihan_ganda' || $this->pertanyaanSekarang()->tipe_jawaban === 'input_nilai')
-                        @foreach($this->pertanyaanSekarang()->opsiJawaban as $opsi)
-                            <button wire:click="pilihJawaban({{ $opsi->id }})" wire:key="jawaban-{{ $opsi->id }}" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
-                                {{ $opsi->teks_jawaban }}
-                            </button>
-                        @endforeach
-                    @endif
-
+                    @foreach($this->pertanyaanSekarang->opsiJawaban as $opsi)
+                        <button wire:click="pilihJawaban({{ $opsi->id }})" wire:key="jawaban-{{ $opsi->id }}" class="px-6 py-3 text-base font-semibold rounded-lg bg-primary text-white hover:bg-primary/90 focus:outline-none transition-all duration-200 hover:ring-2 hover:ring-primary/70 dark:hover:ring-offset-neutral-800">
+                            {{ $opsi->teks_jawaban }}
+                        </button>
+                    @endforeach
                 </div>
             </div>
         @else
