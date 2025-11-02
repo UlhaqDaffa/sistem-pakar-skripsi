@@ -94,13 +94,7 @@ Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini s
   php artisan migrate
 ```
 
-9). Jalankan proses build aset frontend
-
-```bash
-  npm run dev
-```
-
-10). Jalankan server development
+9). Jalankan server development
 
 ```bash
   composer run dev
