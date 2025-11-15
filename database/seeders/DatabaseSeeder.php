@@ -5,9 +5,10 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Database\Seeders\AdminUserSeeder;
-// use Database\Seeders\MatkulSeeder;
+use Database\Seeders\UsersSeeder;
+use Database\Seeders\KategoriPertanyaanSeeder;
+use Database\Seeders\PertanyaanSeeder;
+
 use Illuminate\Support\Facades\DB;
 
 
@@ -21,8 +22,10 @@ class DatabaseSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         User::truncate();
 
-        $this->call(AdminUserSeeder::class);
-        $this->call(KuesionerSeeder::class);
+        $this->call(UsersSeeder::class);
+        $this->call(KategoriPertanyaanSeeder::class);
+        $this->call(PertanyaanSeeder::class);
+        $this->call(MinatDanRisetSeeder::class);
 
         // $this->call(MatkulSeeder::class);
 
@@ -41,12 +44,5 @@ class DatabaseSeeder extends Seeder
         // );
 
         // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'User',
-            'email' => 'user@example.com',
-            'password' => Hash::make('test1234'),
-        ]);
-
     }
 }

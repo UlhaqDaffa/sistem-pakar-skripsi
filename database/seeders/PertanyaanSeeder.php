@@ -6,49 +6,21 @@ use Illuminate\Database\Seeder;
 use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawaban;
-use Illuminate\Support\Facades\DB;
 
-class KuesionerSeeder extends Seeder
+class PertanyaanSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Nonaktifkan pengecekan foreign key untuk truncate
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        // Hapus data lama untuk menghindari duplikasi
-        OpsiJawaban::truncate();
         Pertanyaan::truncate();
-        KategoriPertanyaan::truncate();
+        OpsiJawaban::truncate();
 
-        // Aktifkan kembali pengecekan foreign key
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
-        // 1. Buat Kategori Pertanyaan
-        $umum = KategoriPertanyaan::create([
-            'kode_kategori' => 'UMUM',
-            'nama_kategori' => 'Pertanyaan Umum',
-            'tipe' => 'umum',
-            'deskripsi' => 'Pertanyaan untuk menentukan arketipe dasar pengguna.',
-        ]);
-
-        $minat = KategoriPertanyaan::create([
-            'kode_kategori' => 'MINAT',
-            'nama_kategori' => 'Pertanyaan Minat',
-            'tipe' => 'minat',
-            'deskripsi' => 'Pertanyaan lanjutan untuk menggali minat spesifik berdasarkan arketipe.',
-        ]);
-
-        $asesmen = KategoriPertanyaan::create([
-            'kode_kategori' => 'ASESMEN',
-            'nama_kategori' => 'Pertanyaan Asesmen',
-            'tipe' => 'asesmen',
-            'deskripsi' => 'Pertanyaan untuk mengukur tingkat kemampuan pada bidang yang diminati.',
-        ]);
-
-        // 2. Buat Pertanyaan dan Opsi Jawaban
+        // Get Kategori IDs
+        $umum = KategoriPertanyaan::where('kode_kategori', 'UMUM')->firstOrFail();
+        $minat = KategoriPertanyaan::where('kode_kategori', 'MINAT')->firstOrFail();
+        $asesmen = KategoriPertanyaan::where('kode_kategori', 'ASESMEN')->firstOrFail();
 
         // === TAHAP 1: PERTANYAAN UMUM (ARKETIPE) ===
         $p1 = Pertanyaan::create([
@@ -157,21 +129,25 @@ class KuesionerSeeder extends Seeder
 
 
         // === TAHAP 3: PERTANYAAN ASESMEN (BERDASARKAN MINAT) ===
-        // Helper untuk membuat pertanyaan asesmen dengan skala Likert
-        $createAsesmenQuestion = function ($kode, $teks) use ($asesmen) {
+
+        // Definisikan set jawaban yang bisa digunakan berulang kali
+        $skalaLikertPaham = [
+            1 => 'Sangat Tidak Paham',
+            2 => 'Tidak Paham',
+            3 => 'Cukup Paham', // Urutan diperbaiki
+            4 => 'Paham',       // Urutan diperbaiki
+            5 => 'Sangat Paham',
+        ];
+
+        // Helper generik untuk membuat pertanyaan dengan set jawaban yang sudah ada
+        $createQuestionWithAnswers = function ($kategori, $kode, $teks, $jawabanSet) {
             $pertanyaan = Pertanyaan::create([
-                'kategori_id' => $asesmen->id,
+                'kategori_id' => $kategori->id,
                 'kode_pertanyaan' => $kode,
                 'teks_pertanyaan' => $teks,
             ]);
-            $skala = [
-                1 => 'Sangat Tidak Paham',
-                2 => 'Tidak Paham',
-                3 => 'Cukup Paham',
-                4 => 'Paham',
-                5 => 'Sangat Paham',
-            ];
-            foreach ($skala as $nilai => $jawaban) {
+
+            foreach ($jawabanSet as $nilai => $jawaban) {
                 OpsiJawaban::create([
                     'pertanyaan_id' => $pertanyaan->id,
                     'kode_jawaban' => 'SKALA_' . $nilai,
@@ -179,6 +155,11 @@ class KuesionerSeeder extends Seeder
                     'nilai' => $nilai,
                 ]);
             }
+        };
+
+        // Gunakan helper dengan set jawaban Skala Likert
+        $createAsesmenQuestion = function ($kode, $teks) use ($asesmen, $skalaLikertPaham, $createQuestionWithAnswers) {
+            $createQuestionWithAnswers($asesmen, $kode, $teks, $skalaLikertPaham);
         };
 
         // -- Asesmen untuk WEB_DEV --

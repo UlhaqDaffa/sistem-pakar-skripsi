@@ -2,12 +2,10 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\Computed;
-use Illuminate\Support\Collection;
 use App\Models\Konsultasi;
-use App\Models\JawabanKonsultasi;
-use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawaban;
+use App\Services\KonsultasiService;
 
 new class extends Component {
     public ?Konsultasi $konsultasi;
@@ -23,89 +21,45 @@ new class extends Component {
 
     public function mount(): void
     {
-        $this->konsultasi = Konsultasi::create(['user_id' => auth()->id()]);
-        $this->pertanyaanSekarang = Pertanyaan::where('is_start_point', true)->with('opsiJawaban', 'kategori')->first();
+        $konsultasiService = app(KonsultasiService::class);
+        $this->konsultasi = $konsultasiService->start();
+        $this->pertanyaanSekarang = $konsultasiService->getStartQuestion();
 
         if (!$this->pertanyaanSekarang) {
-            // Handle jika tidak ada pertanyaan awal, mungkin redirect atau tampilkan error
             $this->finishConsultation();
         }
     }
 
     public function pilihJawaban(int $opsiJawabanId): void
     {
-        // 1. Simpan jawaban
-        JawabanKonsultasi::create([
-            'konsultasi_id' => $this->konsultasi->id,
-            'opsi_jawaban_id' => $opsiJawabanId,
-        ]);
-
         $opsiTerpilih = OpsiJawaban::find($opsiJawabanId);
+        if (!$opsiTerpilih) {
+            return;
+        }
 
-        // 2. Tambahkan ke ringkasan jawaban di UI
+        // Add to UI summary before changing the question
         $this->jawabanUser[] = [
             'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
             'jawaban' => $opsiTerpilih->teks_jawaban,
         ];
 
-        // 3. Tentukan langkah selanjutnya berdasarkan kategori pertanyaan saat ini
-        $kodeKategori = $this->pertanyaanSekarang->kategori->kode_kategori;
+        $currentState = [
+            'archetype' => $this->archetype,
+            'minat' => $this->minat,
+            'antrianAsesmen' => $this->antrianAsesmen,
+            'asesmenIndex' => $this->asesmenIndex,
+        ];
 
-        if ($kodeKategori === 'UMUM') {
-            $this->handleJawabanUmum($opsiTerpilih);
-        } elseif ($kodeKategori === 'MINAT') {
-            $this->handleJawabanMinat($opsiTerpilih);
-        } elseif ($kodeKategori === 'ASESMEN') {
-            $this->handleJawabanAsesmen();
+        $newState = app(KonsultasiService::class)->processAnswer($this->konsultasi, $this->pertanyaanSekarang, $opsiTerpilih, $currentState);
+
+        // Update component state from the service's response
+        foreach ($newState as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
         }
-    }
-
-    private function handleJawabanUmum(OpsiJawaban $opsi): void
-    {
-        // $opsi->kode_jawaban is 'ARKETIPE_CREATOR', 'ARKETIPE_ANALIS', etc.
-        $this->archetype = str_replace('ARKETIPE_', '', $opsi->kode_jawaban);
-
-        // Cari pertanyaan minat yang sesuai
-        $nextKodePertanyaan = 'MINAT_' . $this->archetype . '_01';
-        $this->pertanyaanSekarang = Pertanyaan::where('kode_pertanyaan', $nextKodePertanyaan)->with('opsiJawaban', 'kategori')->first();
-        $this->progress = 33;
 
         if (!$this->pertanyaanSekarang) {
-            $this->finishConsultation();
-        }
-    }
-
-    private function handleJawabanMinat(OpsiJawaban $opsi): void
-    {
-        // $opsi->kode_jawaban is 'MINAT_WEB_DEV', 'MINAT_MOBILE_DEV', etc.
-        $this->minat = str_replace('MINAT_', '', $opsi->kode_jawaban);
-
-        // Cari semua pertanyaan asesmen yang sesuai
-        $asesmenKode = 'ASESMEN_' . $this->minat . '_%';
-        $this->antrianAsesmen = Pertanyaan::where('kode_pertanyaan', 'like', $asesmenKode)
-            ->with('opsiJawaban', 'kategori')
-            ->orderBy('id')
-            ->get()->all();
-
-        if (!empty($this->antrianAsesmen)) {
-            $this->asesmenIndex = 0;
-            $this->pertanyaanSekarang = $this->antrianAsesmen[$this->asesmenIndex];
-            $this->progress = 66;
-        } else {
-            // Jika tidak ada pertanyaan asesmen, langsung selesaikan
-            $this->finishConsultation();
-        }
-    }
-
-    private function handleJawabanAsesmen(): void
-    {
-        $this->asesmenIndex++;
-        if ($this->asesmenIndex < count($this->antrianAsesmen)) {
-            $this->pertanyaanSekarang = $this->antrianAsesmen[$this->asesmenIndex];
-            // Update progress di dalam tahap asesmen
-            $totalAsesmen = count($this->antrianAsesmen);
-            $this->progress = 66 + (int)(($this->asesmenIndex / $totalAsesmen) * 34);
-        } else {
             $this->finishConsultation();
         }
     }
@@ -113,12 +67,8 @@ new class extends Component {
     public function finishConsultation(): void
     {
         $this->progress = 100;
-        $this->pertanyaanSekarang = null; // Tidak ada pertanyaan lagi
-
-        $this->konsultasi->status = 'selesai';
-        // Di sini Anda bisa menambahkan logika untuk menganalisis jawaban dan menyimpan hasil
-        // $this->konsultasi->hasil_minat_id = ...
-        $this->konsultasi->save();
+        $this->pertanyaanSekarang = null;
+        app(KonsultasiService::class)->finish($this->konsultasi);
 
         $this->redirect(route('konsultasi.hasil', ['konsultasi' => $this->konsultasi->id]), navigate: true);
     }
