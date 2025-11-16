@@ -8,6 +8,9 @@ use Illuminate\Database\Seeder;
 use Database\Seeders\UsersSeeder;
 use Database\Seeders\KategoriPertanyaanSeeder;
 use Database\Seeders\PertanyaanSeeder;
+use Database\Seeders\MinatBidangSeeder;
+use Database\Seeders\AreaRisetSeeder;
+use Database\Seeders\PolaJudulSeeder;
 
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +28,19 @@ class DatabaseSeeder extends Seeder
         $this->call(UsersSeeder::class);
         $this->call(KategoriPertanyaanSeeder::class);
         $this->call(PertanyaanSeeder::class);
-        $this->call(MinatDanRisetSeeder::class);
+        
+        // Seeder baru yang dipisah
+        $this->call(MinatBidangSeeder::class);
+        $this->call(AreaRisetSeeder::class);
+        $this->call(PolaJudulSeeder::class);
+        
+        // Seeder lainnya
+        $this->call(MataKuliahKunciSeeder::class);
+        $this->call(KonfigurasiPembobotanSeeder::class);
+        $this->call(RulesSeeder::class);
+        
+        // Deprecated: MinatDanRisetSeeder sudah diganti dengan MinatBidangSeeder dan AreaRisetSeeder
+        // $this->call(MinatDanRisetSeeder::class);
 
         // $this->call(MatkulSeeder::class);
 

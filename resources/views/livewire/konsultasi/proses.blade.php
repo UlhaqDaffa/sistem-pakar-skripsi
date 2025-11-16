@@ -5,6 +5,7 @@ use Livewire\Attributes\Computed;
 use App\Models\Konsultasi;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawaban;
+use App\Models\OpsiJawabanTemplateItem;
 use App\Services\KonsultasiService;
 
 new class extends Component {
@@ -18,6 +19,24 @@ new class extends Component {
     public ?string $minat = null;
     public array $antrianAsesmen = [];
     public int $asesmenIndex = 0;
+    public bool $showNilaiForm = false;
+    public array $nilaiMataKuliah = [
+        'algoritma' => '',
+        'pemrograman' => '',
+        'basis_data' => '',
+        'kecerdasan_buatan' => '',
+    ];
+
+    public function getNilaiOptions(): array
+    {
+        return [
+            'A' => 'A (Sangat Baik)',
+            'B' => 'B (Baik)',
+            'C' => 'C (Cukup)',
+            'D' => 'D (Kurang)',
+            'E' => 'E (Sangat Kurang)',
+        ];
+    }
 
     public function mount(): void
     {
@@ -32,15 +51,27 @@ new class extends Component {
 
     public function pilihJawaban(int $opsiJawabanId): void
     {
-        $opsiTerpilih = OpsiJawaban::find($opsiJawabanId);
-        if (!$opsiTerpilih) {
+        // Coba cari sebagai template item dulu (untuk pertanyaan baru), lalu fallback ke OpsiJawaban (untuk data historis)
+        $opsiTerpilih = OpsiJawabanTemplateItem::find($opsiJawabanId);
+        $teksJawaban = null;
+
+        if ($opsiTerpilih) {
+            $teksJawaban = $opsiTerpilih->teks_jawaban;
+        } else {
+            $opsiTerpilih = OpsiJawaban::find($opsiJawabanId);
+            if ($opsiTerpilih) {
+                $teksJawaban = $opsiTerpilih->teks_jawaban;
+            }
+        }
+
+        if (!$opsiTerpilih || !$teksJawaban) {
             return;
         }
 
         // Add to UI summary before changing the question
         $this->jawabanUser[] = [
             'pertanyaan' => $this->pertanyaanSekarang->teks_pertanyaan,
-            'jawaban' => $opsiTerpilih->teks_jawaban,
+            'jawaban' => $teksJawaban,
         ];
 
         $currentState = [
@@ -50,7 +81,7 @@ new class extends Component {
             'asesmenIndex' => $this->asesmenIndex,
         ];
 
-        $newState = app(KonsultasiService::class)->processAnswer($this->konsultasi, $this->pertanyaanSekarang, $opsiTerpilih, $currentState);
+        $newState = app(KonsultasiService::class)->processAnswer($this->konsultasi, $this->pertanyaanSekarang, $opsiJawabanId, $currentState);
 
         // Update component state from the service's response
         foreach ($newState as $key => $value) {
@@ -59,9 +90,28 @@ new class extends Component {
             }
         }
 
-        if (!$this->pertanyaanSekarang) {
+        if (!$this->pertanyaanSekarang && !$this->showNilaiForm) {
             $this->finishConsultation();
         }
+    }
+
+    public function simpanNilai(): void
+    {
+        $this->validate([
+            'nilaiMataKuliah.algoritma' => 'required|in:A,B,C,D,E',
+            'nilaiMataKuliah.pemrograman' => 'required|in:A,B,C,D,E',
+            'nilaiMataKuliah.basis_data' => 'required|in:A,B,C,D,E',
+            'nilaiMataKuliah.kecerdasan_buatan' => 'required|in:A,B,C,D,E',
+        ], [
+            'nilaiMataKuliah.*.required' => 'Nilai :attribute harus diisi',
+            'nilaiMataKuliah.*.in' => 'Nilai :attribute harus berupa A, B, C, D, atau E',
+        ]);
+
+        // Simpan nilai mata kuliah
+        app(KonsultasiService::class)->saveNilaiMataKuliah($this->konsultasi, $this->nilaiMataKuliah);
+
+        // Lanjut ke finish
+        $this->finishConsultation();
     }
 
     public function finishConsultation(): void
@@ -88,6 +138,15 @@ new class extends Component {
     #[Computed]
     public function tahapSekarang(): array
     {
+        if ($this->showNilaiForm) {
+            return [
+                'nama' => 'Tahap 4: Input Nilai Mata Kuliah',
+                'deskripsi' => 'Masukkan nilai untuk mata kuliah kunci yang telah Anda ambil.',
+                'pertanyaan_ke' => '',
+                'total_pertanyaan' => '',
+            ];
+        }
+
         if (!$this->pertanyaanSekarang) {
             return [
                 'nama' => 'Menyelesaikan Konsultasi',
@@ -159,7 +218,83 @@ new class extends Component {
             </div>
         </div>
 
-        @if($this->pertanyaanSekarang)
+        @if($this->showNilaiForm)
+            <!-- Form Input Nilai Mata Kuliah -->
+            <div class="flex-grow flex flex-col items-center justify-center px-4">
+                <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white mb-6">Masukkan Nilai Mata Kuliah</h3>
+                <p class="text-gray-600 dark:text-neutral-300 mb-8 max-w-2xl text-center">
+                    Silakan pilih nilai untuk mata kuliah kunci berikut (skala A-E):
+                </p>
+
+                <form wire:submit="simpanNilai" class="w-full max-w-2xl space-y-6">
+                    <div>
+                        <label for="algoritma" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                            Algoritma & Struktur Data
+                        </label>
+                        <flux:select wire:model="nilaiMataKuliah.algoritma" id="algoritma" required class="w-full">
+                            <option value="">Pilih Nilai</option>
+                            @foreach($this->getNilaiOptions() as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </flux:select>
+                        @error('nilaiMataKuliah.algoritma')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="pemrograman" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                            Pemrograman
+                        </label>
+                        <flux:select wire:model="nilaiMataKuliah.pemrograman" id="pemrograman" required class="w-full">
+                            <option value="">Pilih Nilai</option>
+                            @foreach($this->getNilaiOptions() as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </flux:select>
+                        @error('nilaiMataKuliah.pemrograman')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="basis_data" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                            Basis Data
+                        </label>
+                        <flux:select wire:model="nilaiMataKuliah.basis_data" id="basis_data" required class="w-full">
+                            <option value="">Pilih Nilai</option>
+                            @foreach($this->getNilaiOptions() as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </flux:select>
+                        @error('nilaiMataKuliah.basis_data')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="kecerdasan_buatan" class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+                            Kecerdasan Buatan
+                        </label>
+                        <flux:select wire:model="nilaiMataKuliah.kecerdasan_buatan" id="kecerdasan_buatan" required class="w-full">
+                            <option value="">Pilih Nilai</option>
+                            @foreach($this->getNilaiOptions() as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </flux:select>
+                        @error('nilaiMataKuliah.kecerdasan_buatan')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex justify-end pt-4">
+                        <flux:button type="submit" variant="primary" class="w-full sm:w-auto">
+                            Simpan dan Lanjutkan
+                        </flux:button>
+                    </div>
+                </form>
+            </div>
+        @elseif($this->pertanyaanSekarang)
             <!-- Question Area -->
             <div class="flex-grow flex flex-col items-center justify-center text-center px-4" wire:key="pertanyaan-{{ $this->pertanyaanSekarang->id }}">
                 <h3 class="text-xl md:text-3xl font-medium text-gray-900 dark:text-white">{{ $this->pertanyaanSekarang->teks_pertanyaan }}</h3>

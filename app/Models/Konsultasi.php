@@ -18,6 +18,7 @@ class Konsultasi extends Model
         'status',
         'hasil_minat_id',
         'hasil_akademik_id',
+        'area_riset_final_id',
     ];
 
     public function user(): BelongsTo
@@ -38,5 +39,15 @@ class Konsultasi extends Model
     public function jawabanKonsultasis(): HasMany
     {
         return $this->hasMany(JawabanKonsultasi::class);
+    }
+
+    public function nilaiMataKuliah(): HasMany
+    {
+        return $this->hasMany(NilaiMataKuliah::class);
+    }
+
+    public function areaRisetFinal(): BelongsTo
+    {
+        return $this->belongsTo(AreaRiset::class, 'area_riset_final_id');
     }
 }

@@ -19,11 +19,21 @@ class AsesmenStepHandler implements StepHandler
             $progress = 66 + (int)(($newIndex / $totalAsesmen) * 34);
         }
 
+        // Jika tidak ada pertanyaan berikutnya, tampilkan form input nilai
+        if (!$nextQuestion) {
+            return [
+                'pertanyaanSekarang' => null,
+                'asesmenIndex' => $newIndex,
+                'progress' => 90,
+                'showNilaiForm' => true,
+            ];
+        }
 
         return [
             'pertanyaanSekarang' => $nextQuestion,
             'asesmenIndex' => $newIndex,
             'progress' => $progress,
+            'showNilaiForm' => false,
         ];
     }
 }

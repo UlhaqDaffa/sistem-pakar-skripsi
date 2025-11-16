@@ -6,20 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class MinatBidang extends Model
+class PolaJudul extends Model
 {
     use HasFactory;
 
-    protected $table = 'minat_bidang';
+    protected $table = 'pola_judul';
 
     protected $fillable = [
-        'kode_bidang',
-        'nama_bidang',
+        'template_string',
         'deskripsi',
     ];
 
+    /**
+     * Relasi many-to-many ke AreaRiset
+     */
     public function areaRisets(): BelongsToMany
     {
-        return $this->belongsToMany(AreaRiset::class, 'area_riset_minat_bidang');
+        return $this->belongsToMany(AreaRiset::class, 'area_riset_pola_judul', 'pola_judul_id', 'area_riset_id');
     }
 }

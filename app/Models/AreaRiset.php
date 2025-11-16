@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AreaRiset extends Model
 {
@@ -14,7 +14,6 @@ class AreaRiset extends Model
 
     protected $fillable = [
         'kode_area',
-        'minat_bidang_id',
         'nama_area',
         'deskripsi',
         'kata_kunci_teknologi',
@@ -22,8 +21,16 @@ class AreaRiset extends Model
         'contoh_studi_kasus',
     ];
 
-    public function minatBidang(): BelongsTo
+    public function minatBidangs(): BelongsToMany
     {
-        return $this->belongsTo(MinatBidang::class);
+        return $this->belongsToMany(MinatBidang::class, 'area_riset_minat_bidang');
+    }
+
+    /**
+     * Relasi many-to-many ke PolaJudul
+     */
+    public function polaJuduls(): BelongsToMany
+    {
+        return $this->belongsToMany(PolaJudul::class, 'area_riset_pola_judul', 'area_riset_id', 'pola_judul_id');
     }
 }

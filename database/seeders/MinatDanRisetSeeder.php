@@ -44,11 +44,10 @@ class MinatDanRisetSeeder extends Seeder
             'deskripsi' => 'Ilmu interdisipliner yang menggunakan metode, proses, algoritma, dan sistem ilmiah untuk mengekstrak pengetahuan dan wawasan dari banyak data terstruktur dan tidak terstruktur.',
         ]);
 
-        // 2. Buat Area Riset (Sub-bidang Spesifik)
+        // 2. Buat Area Riset (Sub-bidang Spesifik) - Tanpa minat_bidang_id karena menggunakan pivot table
 
         // Area Riset di bawah RPL
-        AreaRiset::create([
-            'minat_bidang_id' => $rpl->id,
+        $webMobile = AreaRiset::create([
             'kode_area' => 'WEB_MOBILE',
             'nama_area' => 'Pengembangan Web dan Mobile',
             'deskripsi' => 'Fokus pada perancangan, pengembangan, dan pemeliharaan aplikasi yang berjalan di browser web atau pada perangkat seluler (Android/iOS).',
@@ -56,8 +55,9 @@ class MinatDanRisetSeeder extends Seeder
             'kata_kunci_metode' => 'Responsive Design, Progressive Web Apps (PWA), API Integration, State Management, Agile, Scrum',
             'contoh_studi_kasus' => 'Sistem E-commerce, Aplikasi Media Sosial, Aplikasi Booking Online, Sistem Informasi Akademik',
         ]);
-        AreaRiset::create([
-            'minat_bidang_id' => $rpl->id,
+        $webMobile->minatBidangs()->attach($rpl->id);
+
+        $gameDev = AreaRiset::create([
             'kode_area' => 'GAME_DEV',
             'nama_area' => 'Pengembangan Game',
             'deskripsi' => 'Mencakup proses pembuatan video game, termasuk desain game, grafika komputer, fisika game, dan kecerdasan buatan untuk karakter non-pemain (NPC).',
@@ -65,10 +65,10 @@ class MinatDanRisetSeeder extends Seeder
             'kata_kunci_metode' => 'Game Loop, State Machine, Physics Engine, Pathfinding, Level Design',
             'contoh_studi_kasus' => 'Game Edukasi, Game Simulasi, Game 2D Platformer, Game 3D Adventure',
         ]);
+        $gameDev->minatBidangs()->attach($rpl->id);
 
         // Area Riset di bawah Kecerdasan Buatan
-        AreaRiset::create([
-            'minat_bidang_id' => $ai->id,
+        $expertSystem = AreaRiset::create([
             'kode_area' => 'EXPERT_SYSTEM',
             'nama_area' => 'Sistem Pakar',
             'deskripsi' => 'Sistem yang meniru kemampuan pengambilan keputusan seorang ahli manusia dalam domain pengetahuan yang sempit.',
@@ -76,8 +76,9 @@ class MinatDanRisetSeeder extends Seeder
             'kata_kunci_metode' => 'Forward Chaining, Backward Chaining, Certainty Factor, Fuzzy Logic, Case-Based Reasoning',
             'contoh_studi_kasus' => 'Sistem Diagnosis Penyakit, Sistem Rekomendasi Pemupukan, Sistem Penasihat Keuangan',
         ]);
-        AreaRiset::create([
-            'minat_bidang_id' => $ai->id,
+        $expertSystem->minatBidangs()->attach($ai->id);
+
+        $nlp = AreaRiset::create([
             'kode_area' => 'NLP',
             'nama_area' => 'Pemrosesan Bahasa Alami (NLP)',
             'deskripsi' => 'Cabang AI yang berfokus pada interaksi antara komputer dan bahasa manusia, memungkinkan mesin untuk membaca, memahami, dan menafsirkan ucapan atau teks.',
@@ -85,10 +86,10 @@ class MinatDanRisetSeeder extends Seeder
             'kata_kunci_metode' => 'Sentiment Analysis, Text Classification, Named Entity Recognition (NER), Machine Translation, Topic Modeling',
             'contoh_studi_kasus' => 'Analisis Sentimen Ulasan Produk, Chatbot, Penerjemah Otomatis, Klasifikasi Berita',
         ]);
+        $nlp->minatBidangs()->attach($ai->id);
 
         // Area Riset di bawah Jaringan & Keamanan
-        AreaRiset::create([
-            'minat_bidang_id' => $jkk->id,
+        $cyberSec = AreaRiset::create([
             'kode_area' => 'CYBER_SEC',
             'nama_area' => 'Keamanan Siber',
             'deskripsi' => 'Praktik melindungi sistem, jaringan, dan data dari serangan, kerusakan, atau akses tidak sah.',
@@ -96,10 +97,10 @@ class MinatDanRisetSeeder extends Seeder
             'kata_kunci_metode' => 'Penetration Testing, Digital Forensics, Cryptography, Network Security Analysis, Malware Analysis',
             'contoh_studi_kasus' => 'Analisis Forensik Serangan Jaringan, Pengembangan Sistem Deteksi Intrusi, Pengujian Keamanan Aplikasi Web',
         ]);
+        $cyberSec->minatBidangs()->attach($jkk->id);
 
         // Area Riset di bawah Sains Data
-        AreaRiset::create([
-            'minat_bidang_id' => $ds->id,
+        $dataAnalytics = AreaRiset::create([
             'kode_area' => 'DATA_ANALYTICS',
             'nama_area' => 'Analitika Data dan Business Intelligence',
             'deskripsi' => 'Proses memeriksa kumpulan data untuk menarik kesimpulan tentang informasi yang dikandungnya, seringkali untuk membuat keputusan bisnis yang lebih baik.',
@@ -107,5 +108,6 @@ class MinatDanRisetSeeder extends Seeder
             'kata_kunci_metode' => 'Predictive Modeling, Clustering, Classification, Regression, Data Visualization, A/B Testing',
             'contoh_studi_kasus' => 'Prediksi Churn Pelanggan, Segmentasi Pasar, Analisis Keranjang Belanja, Dashboard Performa Penjualan',
         ]);
+        $dataAnalytics->minatBidangs()->attach($ds->id);
     }
 }
