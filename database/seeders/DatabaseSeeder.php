@@ -29,16 +29,15 @@ class DatabaseSeeder extends Seeder
         $this->call(KategoriPertanyaanSeeder::class);
         $this->call(PertanyaanSeeder::class);
         
-        // Seeder baru yang dipisah
         $this->call(MinatBidangSeeder::class);
         $this->call(AreaRisetSeeder::class);
         $this->call(PolaJudulSeeder::class);
-        
+
         // Seeder lainnya
         $this->call(MataKuliahKunciSeeder::class);
         $this->call(KonfigurasiPembobotanSeeder::class);
         $this->call(RulesSeeder::class);
-        
+
         // Deprecated: MinatDanRisetSeeder sudah diganti dengan MinatBidangSeeder dan AreaRisetSeeder
         // $this->call(MinatDanRisetSeeder::class);
 

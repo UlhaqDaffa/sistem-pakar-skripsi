@@ -53,12 +53,6 @@ new class extends Component {
                     </button>
                     <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Detail Konsultasi</h2>
                 </div>
-                <a href="{{ route('ekspor.pdf', ['konsultasi' => $consultation->id]) }}" class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Ekspor PDF
-                </a>
             </div>
 
             <!-- Consultation Details -->

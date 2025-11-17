@@ -36,12 +36,13 @@ return new class extends Migration
         Schema::create('area_riset', function (Blueprint $table) {
             $table->id();
             $table->string('kode_area')->unique()->comment('Contoh: SISTEM_REKOMENDASI');
-            $table->foreignId('minat_bidang_id')->constrained('minat_bidang')->cascadeOnDelete();
             $table->string('nama_area');
             $table->text('deskripsi');
             $table->text('kata_kunci_teknologi')->comment('Contoh: Python, Scikit-learn, Pandas');
             $table->text('kata_kunci_metode')->comment('Contoh: Collaborative Filtering, KNN');
             $table->text('contoh_studi_kasus')->comment('Contoh: Rekomendasi Film, E-commerce');
+            $table->text('tujuan_masalah')->comment('Deskripsi tujuan/masalah yang diselesaikan untuk formulasi judul');
+            $table->text('tipe_sistem')->comment('Tipe sistem yang dikembangkan untuk formulasi judul');
             $table->timestamps();
         });
 
@@ -86,6 +87,7 @@ return new class extends Migration
             $table->enum('status', ['selesai', 'berjalan'])->default('berjalan');
             $table->foreignId('hasil_minat_id')->nullable()->constrained('area_riset')->nullOnDelete();
             $table->foreignId('hasil_akademik_id')->nullable()->constrained('area_riset')->nullOnDelete();
+            $table->foreignId('area_riset_final_id')->nullable()->constrained('area_riset')->nullOnDelete();
             $table->timestamps();
         });
 

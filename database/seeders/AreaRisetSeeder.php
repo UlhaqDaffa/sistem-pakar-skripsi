@@ -39,6 +39,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Docker, Kubernetes, API Gateway, RabbitMQ, Kafka, gRPC, REST API',
             'kata_kunci_metode' => 'Domain-Driven Design (DDD), SAGA Pattern, CQRS, Service Discovery',
             'contoh_studi_kasus' => 'Migrasi sistem e-commerce monolitik ke arsitektur microservices untuk menangani flash sale',
+            'tujuan_masalah' => 'Peningkatan Skalabilitas dan Fleksibilitas Sistem E-Commerce',
+            'tipe_sistem' => 'Aplikasi Web Berbasis Microservices',
         ]);
         $rpl01->minatBidangs()->attach($rpl->id);
 
@@ -49,6 +51,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Git, Jenkins, GitLab CI/CD, Jira, Docker, Ansible',
             'kata_kunci_metode' => 'Agile, Scrum, Kanban, DevOps, CI/CD (Continuous Integration/Continuous Delivery)',
             'contoh_studi_kasus' => 'Analisis dampak penerapan CI/CD terhadap pengurangan bug dan percepatan deployment di startup X',
+            'tujuan_masalah' => 'Percepatan Siklus Pengembangan dan Deployment Software',
+            'tipe_sistem' => 'Pipeline CI/CD untuk Aplikasi Web',
         ]);
         $rpl02->minatBidangs()->attach($rpl->id);
 
@@ -59,6 +63,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Selenium, Appium, JMeter, Postman, JUnit, Cypress, Katalon',
             'kata_kunci_metode' => 'Automation Testing, Black-Box Testing, White-Box Testing, TDD (Test-Driven Development), Load Testing',
             'contoh_studi_kasus' => 'Pengembangan script pengujian otomatis untuk fitur registrasi dan transaksi pada aplikasi mobile banking',
+            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
+            'tipe_sistem' => 'Sistem Pengujian Otomatis',
         ]);
         $rpl03->minatBidangs()->attach($rpl->id);
 
@@ -70,6 +76,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Flutter, React Native, Dart, JavaScript, Firebase, SQLite',
             'kata_kunci_metode' => 'Declarative UI, State Management (Provider, Redux, Bloc), Integrasi API',
             'contoh_studi_kasus' => 'Pembuatan aplikasi e-learning atau sistem absensi online cross-platform menggunakan Flutter',
+            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
+            'tipe_sistem' => 'Sistem Pengujian Otomatis',
         ]);
         $peng01->minatBidangs()->attach($peng->id);
 
@@ -80,6 +88,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Laravel, Node.js (Express), React, Vue.js, MySQL, PostgreSQL, TailwindCSS',
             'kata_kunci_metode' => 'REST API, MVC (Model-View-Controller), Server-Side Rendering (SSR), Single Page Application (SPA)',
             'contoh_studi_kasus' => 'Sistem informasi geografis (GIS) pemetaan UMKM berbasis web menggunakan MERN stack (MongoDB, Express, React, Node)',
+            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
+            'tipe_sistem' => 'Sistem Pengujian Otomatis',
         ]);
         $peng02->minatBidangs()->attach($peng->id);
 
@@ -90,6 +100,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Service Workers, Web App Manifest, Cache API, JavaScript, Workbox',
             'kata_kunci_metode' => 'Offline-first, Push Notification API, Background Sync',
             'contoh_studi_kasus' => 'Implementasi PWA pada website toko online untuk meningkatkan konversi dan user engagement',
+            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
+            'tipe_sistem' => 'Sistem Pengujian Otomatis',
         ]);
         $peng03->minatBidangs()->attach($peng->id);
 
@@ -101,6 +113,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, Scikit-learn, TensorFlow, Pandas, Jupyter',
             'kata_kunci_metode' => 'Decision Tree (CART, C4.5), K-Nearest Neighbors (KNN), Support Vector Machine (SVM), Regresi Linier/Logistik, Naive Bayes',
             'contoh_studi_kasus' => 'Prediksi kelulusan mahasiswa tepat waktu menggunakan algoritma C4.5 berdasarkan data akademik',
+            'tujuan_masalah' => 'Prediksi Hasil Akademik Mahasiswa untuk Intervensi Dini',
+            'tipe_sistem' => 'Model Machine Learning Klasifikasi',
         ]);
         $ai01->minatBidangs()->attach($ai->id);
 
@@ -111,6 +125,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'TensorFlow, Keras, PyTorch, OpenCV',
             'kata_kunci_metode' => 'Artificial Neural Network (ANN), Convolutional Neural Network (CNN), Recurrent Neural Network (RNN)',
             'contoh_studi_kasus' => 'Klasifikasi jenis kendaraan di jalan tol secara real-time menggunakan CNN',
+            'tujuan_masalah' => 'Pengembangan Sistem Computer Vision untuk Surveillance Otomatis',
+            'tipe_sistem' => 'Deep Learning Model untuk Pengenalan Gambar',
         ]);
         $ai02->minatBidangs()->attach($ai->id);
 
@@ -121,6 +137,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'PHP, Python, (Framework internal), MATLAB',
             'kata_kunci_metode' => 'Rule-Based, Forward Chaining, Backward Chaining, Certainty Factor, Fuzzy (Mamdan, Sugeno)',
             'contoh_studi_kasus' => 'Sistem pakar untuk diagnosis dini penyakit tanaman padi menggunakan metode Certainty Factor',
+            'tujuan_masalah' => 'Peningkatan Akurasi Diagnosis Penyakit Tanaman',
+            'tipe_sistem' => 'Sistem Pakar Berbasis Certainty Factor',
         ]);
         $ai03->minatBidangs()->attach($ai->id);
 
@@ -131,6 +149,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, MATLAB',
             'kata_kunci_metode' => 'Algoritma Genetika, Particle Swarm Optimization (PSO), Ant Colony Optimization (ACO)',
             'contoh_studi_kasus' => 'Optimasi penjadwalan mata kuliah di universitas menggunakan Algoritma Genetika',
+            'tujuan_masalah' => 'Peningkatan Efisiensi Penjadwalan Akademik',
+            'tipe_sistem' => 'Algoritma Genetika untuk Optimasi Schedule',
         ]);
         $ai04->minatBidangs()->attach($ai->id);
 
@@ -142,6 +162,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python (Pandas, Scikit-learn), R, Weka, RapidMiner, NLTK, Sastrawi',
             'kata_kunci_metode' => 'Clustering (K-Means, DBSCAN), Asosiasi (Market Basket Analysis, Apriori), Klasifikasi, Preprocessing Data, TF-IDF',
             'contoh_studi_kasus' => 'Analisis pola belanja pelanggan di supermarket untuk menentukan tata letak produk menggunakan algoritma Apriori',
+            'tujuan_masalah' => 'Identifikasi Pola Belanja Konsumen untuk Optimasi Tata Letak Toko',
+            'tipe_sistem' => 'Model Analisis Data Mining',
         ]);
         $data01->minatBidangs()->attach($data->id);
 
@@ -152,6 +174,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python (Surprise, Scikit-learn), FastAPI, MySQL, MongoDB',
             'kata_kunci_metode' => 'Collaborative Filtering (User-based, Item-based), Content-Based Filtering, Hybrid Filtering',
             'contoh_studi_kasus' => 'Pembuatan sistem rekomendasi topik penelitian untuk mahasiswa (seperti sistem Anda) menggunakan hybrid filtering',
+            'tujuan_masalah' => 'Sistem Rekomendasi Personal untuk Meningkatkan User Engagement',
+            'tipe_sistem' => 'Sistem Rekomendasi Berbasis Machine Learning',
         ]);
         $data02->minatBidangs()->attach($data->id);
 
@@ -162,6 +186,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python (NLTK, Scikit-learn, Sastrawi), Twitter API',
             'kata_kunci_metode' => 'Lexicon-Based, Machine Learning (Naive Bayes, SVM), Deep Learning (RNN, LSTM), Word Embedding',
             'contoh_studi_kasus' => 'Analisis sentimen publik terhadap kebijakan pemerintah baru berdasarkan data dari platform Twitter',
+            'tujuan_masalah' => 'Evaluasi Opini Publik pada Kebijakan Pemerintah Melalui Media Sosial',
+            'tipe_sistem' => 'Model Analisis Sentimen Teks',
         ]);
         $data03->minatBidangs()->attach($data->id);
 
@@ -173,6 +199,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, OpenCV, TensorFlow, Keras, YOLO (You Only Look Once)',
             'kata_kunci_metode' => 'CNN (Convolutional Neural Network), R-CNN, SSD (Single Shot MultiBox Detector), YOLO',
             'contoh_studi_kasus' => 'Sistem penghitung jumlah kendaraan di persimpangan jalan raya menggunakan YOLO dan kamera CCTV',
+            'tujuan_masalah' => 'Pemeliharaan Ketertiban Lalu Lintas Jalan Raya',
+            'tipe_sistem' => 'Sistem Computer Vision Real-time',
         ]);
         $citra01->minatBidangs()->attach($citra->id);
 
@@ -183,6 +211,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, OpenCV, Keras, TensorFlow, Scikit-image, DICOM',
             'kata_kunci_metode' => 'Segmentasi Citra (U-Net), Klasifikasi (CNN), Ekstraksi Fitur, Image Enhancement',
             'contoh_studi_kasus' => 'Klasifikasi citra X-Ray paru-paru untuk deteksi dini pneumonia atau COVID-19 menggunakan CNN',
+            'tujuan_masalah' => 'Peningkatan Akurasi Diagnosis Penyakit Melalui Citra Medis',
+            'tipe_sistem' => 'Model Computer Vision untuk Aplikasi Medis',
         ]);
         $citra02->minatBidangs()->attach($citra->id);
 
@@ -193,6 +223,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, OpenCV, Tesseract, Dlib, face_recognition library',
             'kata_kunci_metode' => 'Ekstraksi Fitur (Haar Cascades, HOG), Deep Learning (Siamese Networks, FaceNet), Template Matching',
             'contoh_studi_kasus' => 'Sistem absensi mahasiswa otomatis menggunakan face recognition di ruang kelas',
+            'tujuan_masalah' => 'Sistem Absensi Otomatis Mahasiswa Berbasis Computer Vision',
+            'tipe_sistem' => 'Sistem Biometrik untuk Identifikasi Identitas',
         ]);
         $citra03->minatBidangs()->attach($citra->id);
 
@@ -204,6 +236,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, RASA, Google Dialogflow, Telegram Bot API, WhatsApp API',
             'kata_kunci_metode' => 'Intent Classification, Entity Extraction, Sequence-to-Sequence (Seq2Seq), Retrieval-based, Generative-based',
             'contoh_studi_kasus' => 'Pembuatan chatbot layanan pelanggan untuk e-commerce yang dapat menjawab pertanyaan seputar status pesanan',
+            'tujuan_masalah' => 'Otomatisasi Layanan Pelanggan E-commerce Melalui Interaksi Natural Language',
+            'tipe_sistem' => 'Chatbot Asisten Virtual',
         ]);
         $nlp01->minatBidangs()->attach($nlp->id);
 
@@ -214,6 +248,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, TensorFlow, PyTorch, Hugging Face (Transformers, BERT, GPT)',
             'kata_kunci_metode' => 'Machine Translation (SMT, NMT), Text Summarization (Ekstraktif, Abstraktif), Attention Mechanism',
             'contoh_studi_kasus' => 'Sistem peringkas berita otomatis dari berbagai portal online menggunakan metode ekstraktif',
+            'tujuan_masalah' => 'Efisiensi Pemrosesan Dokumen Berita Menggunakan AI',
+            'tipe_sistem' => 'Model NLP untuk Penerjemahan dan Ringkasan',
         ]);
         $nlp02->minatBidangs()->attach($nlp->id);
 
@@ -224,6 +260,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, Scikit-learn, NLTK, Sastrawi, Hugging Face',
             'kata_kunci_metode' => 'TF-IDF, Word Embedding (Word2Vec), Klasifikasi (Naive Bayes, SVM, BERT)',
             'contoh_studi_kasus' => 'Pengembangan plugin browser untuk mendeteksi judul berita hoaks menggunakan model klasifikasi teks',
+            'tujuan_masalah' => 'Pencegahan Penyebaran Berita Palsu di Media Sosial',
+            'tipe_sistem' => 'Model Klasifikasi Teks untuk Deteksi Hoaks',
         ]);
         $nlp03->minatBidangs()->attach($nlp->id);
 
@@ -235,6 +273,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Figma, Sketch, Maze, Hotjar, Google Analytics, Perangkat Eye-tracking',
             'kata_kunci_metode' => 'Usability Testing, Heuristic Evaluation (Nielsen), Cognitive Walkthrough, SUS (System Usability Scale), Think Aloud Protocol',
             'contoh_studi_kasus' => 'Analisis perbandingan usability antara aplikasi mobile banking Bank A dan Bank B menggunakan metode SUS',
+            'tujuan_masalah' => 'Pengukuran dan Peningkatan Tingkat Kemudahan Penggunaan Aplikasi',
+            'tipe_sistem' => 'Framework Evaluasi Usability',
         ]);
         $hci01->minatBidangs()->attach($hci->id);
 
@@ -245,6 +285,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Figma, Adobe XD, Balsamiq, Miro (untuk User Flow)',
             'kata_kunci_metode' => 'Design Thinking, User Persona, User Journey Mapping, Card Sorting, Wireframing, Prototyping',
             'contoh_studi_kasus' => 'Perancangan prototype high-fidelity aplikasi konsultasi kesehatan mental berbasis user persona dan journey mapping',
+            'tujuan_masalah' => 'Perancangan Antarmuka yang Lebih Intuitif dan Memuaskan',
+            'tipe_sistem' => 'UI/UX Design System',
         ]);
         $hci02->minatBidangs()->attach($hci->id);
 
@@ -255,6 +297,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => '(Tergantung platform, misal: Laravel/PHP, JavaScript)',
             'kata_kunci_metode' => 'Points, Badges, Leaderboards (PBL), Octalysis Framework, Self-Determination Theory',
             'contoh_studi_kasus' => 'Implementasi gamifikasi pada platform e-learning untuk meningkatkan motivasi belajar mahasiswa',
+            'tujuan_masalah' => 'Peningkatan Motivasi Pembelajaran Melalui Mekanika Game',
+            'tipe_sistem' => 'E-Learning Platform dengan Elemen Gamifikasi',
         ]);
         $hci03->minatBidangs()->attach($hci->id);
 
@@ -266,6 +310,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Unity, Unreal Engine, Godot, Blender, C#, C++, Pygame',
             'kata_kunci_metode' => 'Game Design Document (GDD), Finite State Machine (FSM) (untuk AI musuh), Collision Detection, Shaders',
             'contoh_studi_kasus' => 'Pembuatan game edukasi (serious game) 3D untuk simulasi mitigasi bencana alam menggunakan Unity',
+            'tujuan_masalah' => 'Pembelajaran Interaktif untuk Mitigasi Bencana Alam',
+            'tipe_sistem' => 'Game Edukasi 3D',
         ]);
         $graf01->minatBidangs()->attach($graf->id);
 
@@ -276,6 +322,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Unity, Vuforia, ARCore (Android), ARKit (iOS), Blender',
             'kata_kunci_metode' => 'Marker-based Tracking, Markerless Tracking (SLAM), Image Target',
             'contoh_studi_kasus' => 'Aplikasi AR untuk visualisasi furnitur di dalam ruangan rumah melalui kamera smartphone',
+            'tujuan_masalah' => 'Visualisasi Produk Interior Berbasis Augmented Reality',
+            'tipe_sistem' => 'Aplikasi Mobile dengan Teknologi AR',
         ]);
         $graf02->minatBidangs()->attach($graf->id);
 
@@ -286,6 +334,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Unity, Unreal Engine, Oculus SDK, SteamVR, Blender, 3ds Max',
             'kata_kunci_metode' => '3D Modelling, Environment Design, VR Interaction Design, Simulasi Fisika',
             'contoh_studi_kasus' => 'Pengembangan simulasi terapi VR untuk mengatasi fobia ketinggian (acrophobia)',
+            'tujuan_masalah' => 'Terapi Psikologis untuk Atasi Fobia Melalui Immersive Simulation',
+            'tipe_sistem' => 'Aplikasi VR Terapi Psikologis',
         ]);
         $graf03->minatBidangs()->attach($graf->id);
 
@@ -297,6 +347,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Wireshark, Nmap, Metasploit, Snort, pfSense, FTK Imager, Autopsy',
             'kata_kunci_metode' => 'Penetration Testing, Analisis Malware, Network Traffic Analysis, Intrusion Detection System (IDS), Firewall Configuration',
             'contoh_studi_kasus' => 'Analisis forensik digital pada file gambar untuk mengungkap pesan tersembunyi (steganografi)',
+            'tujuan_masalah' => 'Penguatan Keamanan Infrastruktur Jaringan Perusahaan',
+            'tipe_sistem' => 'Sistem Forensik Digital dan Penetration Testing',
         ]);
         $jar01->minatBidangs()->attach($jar->id);
 
@@ -307,6 +359,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Python, MATLAB, OpenSSL',
             'kata_kunci_metode' => 'Algoritma (AES, RSA, DES), Hashing (SHA-256), Public Key Infrastructure (PKI), Least Significant Bit (LSB)',
             'contoh_studi_kasus' => 'Implementasi algoritma AES-256 untuk pengamanan data rekam medis pasien di aplikasi web',
+            'tujuan_masalah' => 'Pengamanan Data Sensitif dalam Sistem Informasi Kesehatan',
+            'tipe_sistem' => 'Implementasi Algoritma Kriptografi',
         ]);
         $jar02->minatBidangs()->attach($jar->id);
 
@@ -317,6 +371,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Cisco Packet Tracer, GNS3, Mikrotik RouterOS, PRTG Network Monitor',
             'kata_kunci_metode' => 'Quality of Service (QoS), Load Balancing, Traffic Shaping, Routing Protocols (OSPF, BGP), VPN',
             'contoh_studi_kasus' => 'Analisis kinerja routing protocol OSPF dan EIGRP pada jaringan enterprise menggunakan simulasi GNS3',
+            'tujuan_masalah' => 'Optimalisasi Kinerja Jaringan untuk Layanan Kritikal',
+            'tipe_sistem' => 'Sistem Manajemen Jaringan dengan QoS',
         ]);
         $jar03->minatBidangs()->attach($jar->id);
 
@@ -328,6 +384,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Arduino, Raspberry Pi, ESP32/ESP8266, NodeMCU, Firebase, Blynk, MQTT',
             'kata_kunci_metode' => 'Wireless Sensor Network (WSN), Protokol (MQTT, HTTP), Real-time Data Processing',
             'contoh_studi_kasus' => 'Rancang bangun sistem kontrol lampu dan kunci pintu otomatis berbasis aplikasi mobile dan platform IoT Blynk',
+            'tujuan_masalah' => 'Otomatisasi Kontrol Perangkat Rumah Tangga untuk Efisiensi Energi',
+            'tipe_sistem' => 'Sistem Smart Home IoT',
         ]);
         $iot01->minatBidangs()->attach($iot->id);
 
@@ -338,6 +396,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Arduino, ESP32, LoRaWAN, Sensor (DHT22, pH, EKG), ThingsSpeak, Antares',
             'kata_kunci_metode' => 'Data Logging, Remote Sensing, Data Visualization Dashboard',
             'contoh_studi_kasus' => 'Sistem monitoring kualitas udara (PM2.5) berbasis IoT dan visualisasi dashboard web',
+            'tujuan_masalah' => 'Monitoring Kualitas Udara Sekitar Dengan Early Warning System',
+            'tipe_sistem' => 'Dashboard Monitoring IoT Real-time',
         ]);
         $iot02->minatBidangs()->attach($iot->id);
 
@@ -348,6 +408,8 @@ class AreaRisetSeeder extends Seeder
             'kata_kunci_teknologi' => 'Arduino, Raspberry Pi, Motor Servo, Sensor Ultrasonik, OpenCV (untuk navigasi)',
             'kata_kunci_metode' => 'Kontrol PID (Proportional-Integral-Derivative), Pathfinding (A*), Kinematics',
             'contoh_studi_kasus' => 'Pembuatan robot pemilah sampah otomatis berdasarkan jenis material menggunakan sensor dan machine learning',
+            'tujuan_masalah' => 'Otomatisasi Pemilah Sampah Berbasis Computer Vision',
+            'tipe_sistem' => 'Robot Pemilah Sampah Otomatis',
         ]);
         $iot03->minatBidangs()->attach($iot->id);
     }

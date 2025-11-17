@@ -19,6 +19,8 @@ class AreaRiset extends Model
         'kata_kunci_teknologi',
         'kata_kunci_metode',
         'contoh_studi_kasus',
+        'tujuan_masalah',
+        'tipe_sistem',
     ];
 
     public function minatBidangs(): BelongsToMany

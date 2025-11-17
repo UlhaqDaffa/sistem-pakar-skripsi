@@ -8,8 +8,8 @@ use Illuminate\Support\Collection;
 class TitleFormulationService
 {
     /**
-     * Generate titles based on area riset and its associated pola judul
-     * 
+     * Generasi judul berdasarkan pola judul yang terhubung dengan area riset
+     *
      * @param AreaRiset $areaRiset
      * @return array Array of formatted title strings
      */
@@ -29,10 +29,10 @@ class TitleFormulationService
 
         foreach ($polaJuduls as $polaJudul) {
             $template = $polaJudul->template_string;
-            
+
             // Lakukan string replacement
             $formattedTitle = $this->replacePlaceholders($template, $areaRiset, $metodeArray);
-            
+
             $titles[] = $formattedTitle;
         }
 
@@ -41,7 +41,7 @@ class TitleFormulationService
 
     /**
      * Parse kata_kunci_metode string menjadi array
-     * 
+     *
      * @param string|null $kataKunciMetode
      * @return array
      */
@@ -51,7 +51,7 @@ class TitleFormulationService
             return [];
         }
 
-        // Split by comma, trim each item, filter empty
+        // pecah dengan koma, trim setiap item, filter yang kosong
         $metode = array_filter(
             array_map('trim', explode(',', $kataKunciMetode)),
             fn($item) => !empty($item)
@@ -62,7 +62,7 @@ class TitleFormulationService
 
     /**
      * Replace placeholders in template string
-     * 
+     *
      * @param string $template
      * @param AreaRiset $areaRiset
      * @param array $metodeArray
@@ -86,10 +86,12 @@ class TitleFormulationService
         // [NAMA_AREA] → nama_area dari AreaRiset
         $result = str_replace('[NAMA_AREA]', $areaRiset->nama_area, $result);
 
-        // Placeholder statis seperti [TUJUAN_MASALAH], [TIPE_SISTEM] dibiarkan apa adanya
-        // (tidak di-replace, akan tetap muncul di hasil)
+        // [TUJUAN_MASALAH] → tujuan_masalah dari AreaRiset
+        $result = str_replace('[TUJUAN_MASALAH]', $areaRiset->tujuan_masalah ?? '', $result);
+
+        // [TIPE_SISTEM] → tipe_sistem dari AreaRiset
+        $result = str_replace('[TIPE_SISTEM]', $areaRiset->tipe_sistem ?? '', $result);
 
         return $result;
     }
 }
-

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 })->name('home');
 
 Volt::route('dashboard', 'dashboard')
@@ -24,11 +24,11 @@ Route::middleware(['auth'])->group(function () {
         Volt::route('konsultasi/hasil/{konsultasi?}', 'konsultasi.hasil')->name('konsultasi.hasil');
         Volt::route('riwayat', 'riwayat.riwayat')->name('riwayat.index');
         Volt::route('riwayat/{consultation}', 'riwayat.show')->name('riwayat.show');
-        
+
         // Route PDF export harus didefinisikan sebelum route ekspor/{konsultasi?} untuk menghindari konflik
         Route::get('ekspor/pdf-all', [\App\Http\Controllers\EksporController::class, 'exportAllPdf'])->name('ekspor.pdf.all');
         Route::get('ekspor/pdf/{konsultasi}', [\App\Http\Controllers\EksporController::class, 'exportPdf'])->name('ekspor.pdf');
-        
+
         Volt::route('ekspor/{konsultasi?}', 'ekspor.ekspor')->name('ekspor.index');
     });
 });

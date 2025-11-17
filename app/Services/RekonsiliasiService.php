@@ -10,13 +10,13 @@ class RekonsiliasiService
 {
     /**
      * Rekonsiliasi Hasil_Minat dan Hasil_Akademik
-     * 
+     *
      * Logika:
      * 1. Jika Hasil_Akademik null, return Hasil_Minat
      * 2. Cek apakah Hasil_Akademik berada di dalam minat_bidang dari Hasil_Minat
      * 3. Jika Cocok: return Hasil_Akademik (prioritaskan hasil akademik yang sesuai minat)
      * 4. Jika Tidak Cocok: cari area_riset terbaik di dalam minat_bidang Hasil_Minat
-     * 
+     *
      * @param AreaRiset $hasilMinat
      * @param AreaRiset|null $hasilAkademik
      * @return AreaRiset
@@ -34,7 +34,7 @@ class RekonsiliasiService
 
         // Ambil minat_bidang dari Hasil_Minat
         $minatBidangsHasilMinat = $hasilMinat->minatBidangs;
-        
+
         if ($minatBidangsHasilMinat->isEmpty()) {
             Log::warning('Rekonsiliasi: Hasil_Minat tidak memiliki minat_bidang', [
                 'hasil_minat_id' => $hasilMinat->id
@@ -48,7 +48,7 @@ class RekonsiliasiService
         // Cek apakah ada irisan antara minat_bidang Hasil_Minat dan Hasil_Akademik
         $minatBidangIdsHasilMinat = $minatBidangsHasilMinat->pluck('id')->toArray();
         $minatBidangIdsHasilAkademik = $minatBidangsHasilAkademik->pluck('id')->toArray();
-        
+
         $intersection = array_intersect($minatBidangIdsHasilMinat, $minatBidangIdsHasilAkademik);
 
         // Jika ada irisan (Cocok)
@@ -82,10 +82,10 @@ class RekonsiliasiService
         }
 
         // Strategi pemilihan area_riset terbaik:
-        // 1. Jika Hasil_Minat ada di options, gunakan itu
-        // 2. Jika tidak, pilih yang pertama (bisa dikembangkan dengan scoring)
+        // 1. Jika Hasil_Minat ada di options, gunakan Hasil_Minat
+        // 2. Jika tidak, pilih yang pertama 
         $bestAreaRiset = $areaRisetOptions->firstWhere('id', $hasilMinat->id);
-        
+
         if ($bestAreaRiset) {
             Log::info('Rekonsiliasi: Menggunakan Hasil_Minat sebagai area_riset terbaik', [
                 'area_riset_id' => $bestAreaRiset->id
@@ -95,7 +95,7 @@ class RekonsiliasiService
 
         // Gunakan area_riset pertama dari options
         $selectedAreaRiset = $areaRisetOptions->first();
-        
+
         Log::info('Rekonsiliasi: Memilih area_riset dari minat_bidang Hasil_Minat', [
             'selected_area_riset_id' => $selectedAreaRiset->id,
             'selected_area_riset_kode' => $selectedAreaRiset->kode_area,
@@ -107,7 +107,7 @@ class RekonsiliasiService
 
     /**
      * Helper method untuk mendapatkan area_riset berdasarkan minat_bidang
-     * 
+     *
      * @param MinatBidang $minatBidang
      * @return AreaRiset|null
      */
