@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawabanTemplate;
@@ -15,46 +16,35 @@ class PertanyaanSeeder extends Seeder
      */
     public function run(): void
     {
-        // Hapus data existing
-        \DB::table('pertanyaan_opsi_jawaban_template')->delete();
+        DB::table('pertanyaan_opsi_jawaban_template')->delete();
         Pertanyaan::truncate();
         OpsiJawabanTemplateItem::truncate();
         OpsiJawabanTemplate::truncate();
 
-        // Get Kategori IDs
         $umum = KategoriPertanyaan::where('kode_kategori', 'UMUM')->firstOrFail();
         $minat = KategoriPertanyaan::where('kode_kategori', 'MINAT')->firstOrFail();
         $asesmen = KategoriPertanyaan::where('kode_kategori', 'ASESMEN')->firstOrFail();
+        $discriminator = KategoriPertanyaan::where('kode_kategori', 'DISK')->firstOrFail();
 
-        // === BUAT TEMPLATE OPSI JAWABAN ===
         $templateLikert = $this->createLikertTemplate();
         $templateArketipe = $this->createArketipeTemplate();
-        
-        // Template minat untuk semua 10 minat bidang
         $templatesMinat = $this->createMinatTemplates();
-        
-        // Template untuk nilai A-E (untuk input nilai mata kuliah)
-        $templateNilaiAE = $this->createNilaiAETemplate();
+        $this->createNilaiAETemplate();
+        $templateDiscriminator = $this->createDiscriminatorTemplate();
 
-        // === TAHAP 1: PERTANYAAN UMUM (ARKETIPE) ===
-        $p1 = Pertanyaan::create([
+        $startQuestion = Pertanyaan::create([
             'kategori_id' => $umum->id,
             'kode_pertanyaan' => 'ARKETIPE_01',
             'teks_pertanyaan' => 'Dari aktivitas berikut, manakah yang paling menggambarkan diri Anda atau paling Anda nikmati?',
             'is_start_point' => true,
         ]);
-        $p1->opsiJawabanTemplate()->attach($templateArketipe->id);
+        $startQuestion->opsiJawabanTemplate()->attach($templateArketipe->id);
 
-        // === TAHAP 2: PERTANYAAN MINAT (BERDASARKAN ARKETIPE) ===
         $this->createMinatQuestions($minat, $templatesMinat);
-
-        // === TAHAP 3: PERTANYAAN ASESMEN (BERDASARKAN MINAT) ===
+        $this->createDiscriminatorQuestions($discriminator, $templateDiscriminator);
         $this->createAsesmenQuestions($asesmen, $templateLikert);
     }
 
-    /**
-     * Buat template Likert 1-5
-     */
     private function createLikertTemplate(): OpsiJawabanTemplate
     {
         $template = OpsiJawabanTemplate::create([
@@ -84,9 +74,6 @@ class PertanyaanSeeder extends Seeder
         return $template;
     }
 
-    /**
-     * Buat template Arketipe
-     */
     private function createArketipeTemplate(): OpsiJawabanTemplate
     {
         $template = OpsiJawabanTemplate::create([
@@ -114,9 +101,6 @@ class PertanyaanSeeder extends Seeder
         return $template;
     }
 
-    /**
-     * Buat template nilai A-E untuk input nilai mata kuliah
-     */
     private function createNilaiAETemplate(): OpsiJawabanTemplate
     {
         $template = OpsiJawabanTemplate::create([
@@ -146,12 +130,8 @@ class PertanyaanSeeder extends Seeder
         return $template;
     }
 
-    /**
-     * Buat template minat untuk semua 10 minat bidang
-     */
     private function createMinatTemplates(): array
     {
-        // Mapping minat bidang ke opsi minat
         $minatMappings = [
             'CREATOR' => [
                 ['kode' => 'MINAT_RPL', 'teks' => 'Rekayasa Perangkat Lunak (Software Engineering)', 'nilai' => 1],
@@ -196,39 +176,78 @@ class PertanyaanSeeder extends Seeder
         return $templates;
     }
 
-    /**
-     * Buat pertanyaan minat berdasarkan arketipe
-     */
     private function createMinatQuestions($kategoriMinat, array $templates): void
     {
-        // Pertanyaan untuk Creator
-        $p1 = Pertanyaan::create([
-            'kategori_id' => $kategoriMinat->id,
-            'kode_pertanyaan' => 'MINAT_CREATOR_01',
-            'teks_pertanyaan' => 'Sebagai seorang "Creator", bidang apa yang paling menarik minat Anda untuk menciptakan sesuatu?',
-        ]);
-        $p1->opsiJawabanTemplate()->attach($templates['CREATOR']->id);
+        $questions = [
+            'CREATOR' => 'Sebagai seorang "Creator", bidang apa yang paling menarik minat Anda untuk menciptakan sesuatu?',
+            'ANALIS' => 'Sebagai seorang "Analis", jenis analisis atau data apa yang paling membuat Anda penasaran?',
+            'ARCHITECT' => 'Sebagai seorang "Architect", arsitektur sistem di level mana yang paling ingin Anda rancang?',
+        ];
 
-        // Pertanyaan untuk Analis
-        $p2 = Pertanyaan::create([
-            'kategori_id' => $kategoriMinat->id,
-            'kode_pertanyaan' => 'MINAT_ANALIS_01',
-            'teks_pertanyaan' => 'Sebagai seorang "Analis", jenis analisis atau data apa yang paling membuat Anda penasaran?',
-        ]);
-        $p2->opsiJawabanTemplate()->attach($templates['ANALIS']->id);
+        foreach ($questions as $archetype => $text) {
+            $pertanyaan = Pertanyaan::create([
+                'kategori_id' => $kategoriMinat->id,
+                'kode_pertanyaan' => 'MINAT_' . $archetype . '_01',
+                'teks_pertanyaan' => $text,
+            ]);
 
-        // Pertanyaan untuk Architect
-        $p3 = Pertanyaan::create([
-            'kategori_id' => $kategoriMinat->id,
-            'kode_pertanyaan' => 'MINAT_ARCHITECT_01',
-            'teks_pertanyaan' => 'Sebagai seorang "Architect", arsitektur sistem di level mana yang paling ingin Anda rancang?',
-        ]);
-        $p3->opsiJawabanTemplate()->attach($templates['ARCHITECT']->id);
+            $pertanyaan->opsiJawabanTemplate()->attach($templates[$archetype]->id);
+        }
     }
 
-    /**
-     * Buat pertanyaan asesmen untuk semua minat bidang
-     */
+    private function createDiscriminatorTemplate(): OpsiJawabanTemplate
+    {
+        $template = OpsiJawabanTemplate::create([
+            'kode_template' => 'DISK_ARKETIPE',
+            'nama_template' => 'Discriminator Arketipe',
+            'deskripsi' => 'Menentukan kecenderungan Creator, Analis, atau Architect pada minat terpilih.',
+        ]);
+
+        $opsi = [
+            ['kode' => 'DISK_CREATOR', 'teks' => 'Saya ingin fokus pada eksperimen visual/prototyping dan membawa ide cepat menjadi produk nyata.', 'nilai' => 1],
+            ['kode' => 'DISK_ANALIS', 'teks' => 'Saya ingin mengevaluasi data, metrik, atau resiko untuk memastikan keputusan berbasis bukti.', 'nilai' => 2],
+            ['kode' => 'DISK_ARCHITECT', 'teks' => 'Saya ingin menyiapkan fondasi teknis, integrasi sistem, dan memastikan skalabilitas.', 'nilai' => 3],
+        ];
+
+        foreach ($opsi as $index => $item) {
+            OpsiJawabanTemplateItem::create([
+                'template_id' => $template->id,
+                'kode_jawaban' => $item['kode'],
+                'teks_jawaban' => $item['teks'],
+                'nilai' => $item['nilai'],
+                'urutan' => $index,
+            ]);
+        }
+
+        return $template;
+    }
+
+    private function createDiscriminatorQuestions(KategoriPertanyaan $kategori, OpsiJawabanTemplate $template): void
+    {
+        $questions = [
+            'RPL' => 'Saat mengerjakan proyek Rekayasa Perangkat Lunak, bagian mana yang paling Anda ingin kuasai?',
+            'PENG' => 'Dalam pengembangan aplikasi end-to-end, fokus terdalam Anda ingin berada pada tahap apa?',
+            'AI' => 'Ketika mengerjakan proyek AI modern, bagian mana yang paling membuat Anda antusias?',
+            'DATA' => 'Saat mengubah data menjadi insight, Anda lebih ingin berperan sebagai apa?',
+            'CITRA' => 'Dalam proyek Computer Vision, fokus Anda cenderung pada aspek apa?',
+            'NLP' => 'Ketika merancang solusi NLP, Anda ingin memperkuat aspek apa terlebih dahulu?',
+            'HCI' => 'Dalam proyek UI/UX & HCI, Anda ingin paling berperan pada bagian mana?',
+            'GRAF' => 'Untuk proyek Grafika Komputer, Anda paling ingin terlibat di bagian apa?',
+            'JAR' => 'Saat mengerjakan jaringan & keamanan siber, Anda cenderung mengambil peran apa?',
+            'IOT' => 'Dalam solusi IoT end-to-end, Anda paling ingin fokus pada bagian apa?',
+        ];
+
+        foreach ($questions as $kodeMinat => $text) {
+            $pertanyaan = Pertanyaan::create([
+                'kategori_id' => $kategori->id,
+                'kode_pertanyaan' => 'DISK_' . $kodeMinat . '_01',
+                'teks_pertanyaan' => $text,
+            ]);
+
+            $pertanyaan->opsiJawabanTemplate()->attach($template->id);
+        }
+    }
+
     private function createAsesmenQuestions($kategoriAsesmen, $templateLikert): void
     {
         $createQuestion = function ($kode, $teks) use ($kategoriAsesmen, $templateLikert) {
@@ -240,9 +259,7 @@ class PertanyaanSeeder extends Seeder
             $pertanyaan->opsiJawabanTemplate()->attach($templateLikert->id);
         };
 
-        // Mapping kode minat ke pertanyaan asesmen
         $asesmenQuestions = [
-            // RPL - Rekayasa Perangkat Lunak
             'RPL' => [
                 'Seberapa paham Anda tentang konsep Software Development Life Cycle (SDLC)?',
                 'Seberapa familiar Anda dengan metodologi pengembangan perangkat lunak (Agile, Scrum, Waterfall)?',
@@ -250,7 +267,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa paham Anda tentang konsep arsitektur perangkat lunak (MVC, Microservices, dll)?',
                 'Seberapa berpengalaman Anda dalam melakukan testing perangkat lunak (Unit Testing, Integration Testing)?',
             ],
-            // PENG - Pengembangan Aplikasi
             'PENG' => [
                 'Seberapa paham Anda tentang dasar-dasar pemrograman (variabel, fungsi, struktur data)?',
                 'Seberapa mahir Anda dalam menggunakan framework pengembangan aplikasi (Laravel, React, Flutter, dll)?',
@@ -258,7 +274,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam mengembangkan aplikasi full-stack?',
                 'Seberapa paham Anda tentang database design dan query optimization?',
             ],
-            // AI - Kecerdasan Buatan
             'AI' => [
                 'Seberapa kuat pemahaman Anda tentang konsep dasar Machine Learning?',
                 'Seberapa mahir Anda menggunakan library Python untuk AI (TensorFlow, PyTorch, Scikit-learn)?',
@@ -266,7 +281,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam membangun model prediksi atau klasifikasi?',
                 'Seberapa paham Anda tentang konsep Deep Learning dan Neural Networks?',
             ],
-            // DATA - Sains Data & Big Data
             'DATA' => [
                 'Seberapa kuat pemahaman Anda tentang statistika dan probabilitas?',
                 'Seberapa mahir Anda menggunakan Python untuk analisis data (Pandas, NumPy, Matplotlib)?',
@@ -274,7 +288,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam membangun sistem rekomendasi atau analisis sentimen?',
                 'Seberapa paham Anda tentang Big Data technologies (Hadoop, Spark, dll)?',
             ],
-            // CITRA - Pemrosesan Citra & Visi Komputer
             'CITRA' => [
                 'Seberapa paham Anda tentang dasar-dasar pemrosesan citra digital?',
                 'Seberapa mahir Anda menggunakan library OpenCV untuk manipulasi gambar?',
@@ -282,7 +295,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam menggunakan Deep Learning untuk image classification?',
                 'Seberapa paham Anda tentang algoritma pengenalan pola dalam citra?',
             ],
-            // NLP - Pemrosesan Bahasa Alami
             'NLP' => [
                 'Seberapa paham Anda tentang dasar-dasar Natural Language Processing?',
                 'Seberapa mahir Anda menggunakan library NLP (NLTK, spaCy, Transformers)?',
@@ -290,7 +302,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam membangun chatbot atau sistem terjemahan?',
                 'Seberapa paham Anda tentang model bahasa modern (BERT, GPT, dll)?',
             ],
-            // HCI - Desain UI/UX & Interaksi Manusia-Komputer
             'HCI' => [
                 'Seberapa paham Anda tentang prinsip-prinsip desain UI/UX?',
                 'Seberapa mahir Anda menggunakan tools desain (Figma, Adobe XD, Sketch)?',
@@ -298,7 +309,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam membuat wireframe dan prototype?',
                 'Seberapa paham Anda tentang prinsip aksesibilitas dalam desain antarmuka?',
             ],
-            // GRAF - Grafika Komputer & Multimedia
             'GRAF' => [
                 'Seberapa paham Anda tentang dasar-dasar grafika komputer 2D dan 3D?',
                 'Seberapa mahir Anda menggunakan game engine (Unity, Unreal Engine, Godot)?',
@@ -306,7 +316,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam membuat animasi atau visual effects?',
                 'Seberapa paham Anda tentang konsep Virtual Reality (VR) atau Augmented Reality (AR)?',
             ],
-            // JAR - Jaringan & Keamanan Siber
             'JAR' => [
                 'Seberapa paham Anda tentang dasar-dasar jaringan komputer dan protokol (TCP/IP, HTTP)?',
                 'Seberapa mahir Anda dalam mengkonfigurasi jaringan dan troubleshooting?',
@@ -314,7 +323,6 @@ class PertanyaanSeeder extends Seeder
                 'Seberapa berpengalaman Anda dalam melakukan penetration testing atau security audit?',
                 'Seberapa paham Anda tentang kriptografi dan enkripsi data?',
             ],
-            // IOT - Sistem Tertanam & Internet of Things
             'IOT' => [
                 'Seberapa paham Anda tentang dasar-dasar elektronika dan mikrokontroler?',
                 'Seberapa mahir Anda menggunakan platform IoT (Arduino, Raspberry Pi, ESP32)?',
@@ -324,7 +332,6 @@ class PertanyaanSeeder extends Seeder
             ],
         ];
 
-        // Buat pertanyaan asesmen untuk setiap minat bidang
         foreach ($asesmenQuestions as $kodeMinat => $questions) {
             foreach ($questions as $index => $question) {
                 $kode = 'ASESMEN_' . $kodeMinat . '_' . str_pad($index + 1, 2, '0', STR_PAD_LEFT);

@@ -16,7 +16,7 @@ class EksporController extends Controller
         $consultation = Konsultasi::where('user_id', Auth::id())
             ->where('status', 'selesai')
             ->with([
-                'areaRisetFinal',
+                'areaRisetFinal.tags',
                 'hasilMinat',
                 'hasilAkademik',
                 'jawabanKonsultasis.opsiJawaban.pertanyaan.kategori',
@@ -43,7 +43,7 @@ class EksporController extends Controller
         $consultations = Konsultasi::where('user_id', Auth::id())
             ->where('status', 'selesai')
             ->with([
-                'areaRisetFinal',
+                'areaRisetFinal.tags',
                 'hasilMinat',
                 'hasilAkademik',
                 'jawabanKonsultasis.opsiJawaban.pertanyaan.kategori',

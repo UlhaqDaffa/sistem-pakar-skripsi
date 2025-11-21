@@ -3,414 +3,824 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\AreaRiset;
 use App\Models\MinatBidang;
-use Illuminate\Support\Facades\DB;
+use App\Models\Tag;
 
 class AreaRisetSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('area_riset_tags')->truncate();
         DB::table('area_riset_minat_bidang')->truncate();
+        Tag::truncate();
         AreaRiset::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Get Minat Bidang
-        $rpl = MinatBidang::where('kode_bidang', 'RPL')->firstOrFail();
-        $peng = MinatBidang::where('kode_bidang', 'PENG')->firstOrFail();
-        $ai = MinatBidang::where('kode_bidang', 'AI')->firstOrFail();
-        $data = MinatBidang::where('kode_bidang', 'DATA')->firstOrFail();
-        $citra = MinatBidang::where('kode_bidang', 'CITRA')->firstOrFail();
-        $nlp = MinatBidang::where('kode_bidang', 'NLP')->firstOrFail();
-        $hci = MinatBidang::where('kode_bidang', 'HCI')->firstOrFail();
-        $graf = MinatBidang::where('kode_bidang', 'GRAF')->firstOrFail();
-        $jar = MinatBidang::where('kode_bidang', 'JAR')->firstOrFail();
-        $iot = MinatBidang::where('kode_bidang', 'IOT')->firstOrFail();
+        $minatBidangs = MinatBidang::all()->keyBy('kode_bidang');
+        $dataset = $this->dataset();
 
-        // === RPL: Rekayasa Perangkat Lunak ===
-        $rpl01 = AreaRiset::create([
-            'kode_area' => 'RPL-01',
-            'nama_area' => 'Arsitektur Microservices',
-            'deskripsi' => 'Penelitian tentang pemecahan aplikasi monolitik menjadi layanan-layanan kecil yang independen untuk meningkatkan skalabilitas, fleksibilitas, dan maintainability.',
-            'kata_kunci_teknologi' => 'Docker, Kubernetes, API Gateway, RabbitMQ, Kafka, gRPC, REST API',
-            'kata_kunci_metode' => 'Domain-Driven Design (DDD), SAGA Pattern, CQRS, Service Discovery',
-            'contoh_studi_kasus' => 'Migrasi sistem e-commerce monolitik ke arsitektur microservices untuk menangani flash sale',
-            'tujuan_masalah' => 'Peningkatan Skalabilitas dan Fleksibilitas Sistem E-Commerce',
-            'tipe_sistem' => 'Aplikasi Web Berbasis Microservices',
-        ]);
-        $rpl01->minatBidangs()->attach($rpl->id);
+        foreach ($dataset as $kodeMinat => $areas) {
+            $primaryMinat = $minatBidangs[$kodeMinat] ?? null;
 
-        $rpl02 = AreaRiset::create([
-            'kode_area' => 'RPL-02',
-            'nama_area' => 'Metodologi Pengembangan & DevOps',
-            'deskripsi' => 'Studi tentang efektivitas metodologi (spt Agile, Scrum) atau implementasi budaya DevOps untuk mempercepat siklus rilis dan meningkatkan kolaborasi tim.',
-            'kata_kunci_teknologi' => 'Git, Jenkins, GitLab CI/CD, Jira, Docker, Ansible',
-            'kata_kunci_metode' => 'Agile, Scrum, Kanban, DevOps, CI/CD (Continuous Integration/Continuous Delivery)',
-            'contoh_studi_kasus' => 'Analisis dampak penerapan CI/CD terhadap pengurangan bug dan percepatan deployment di startup X',
-            'tujuan_masalah' => 'Percepatan Siklus Pengembangan dan Deployment Software',
-            'tipe_sistem' => 'Pipeline CI/CD untuk Aplikasi Web',
-        ]);
-        $rpl02->minatBidangs()->attach($rpl->id);
+            if (!$primaryMinat) {
+                continue;
+            }
 
-        $rpl03 = AreaRiset::create([
-            'kode_area' => 'RPL-03',
-            'nama_area' => 'Pengujian & Kualitas Perangkat Lunak',
-            'deskripsi' => 'Fokus pada teknik dan otomatisasi pengujian (testing) untuk menjamin kualitas, menemukan bug, dan memastikan software bebas dari error kritis.',
-            'kata_kunci_teknologi' => 'Selenium, Appium, JMeter, Postman, JUnit, Cypress, Katalon',
-            'kata_kunci_metode' => 'Automation Testing, Black-Box Testing, White-Box Testing, TDD (Test-Driven Development), Load Testing',
-            'contoh_studi_kasus' => 'Pengembangan script pengujian otomatis untuk fitur registrasi dan transaksi pada aplikasi mobile banking',
-            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
-            'tipe_sistem' => 'Sistem Pengujian Otomatis',
-        ]);
-        $rpl03->minatBidangs()->attach($rpl->id);
+            foreach ($areas as $areaData) {
+                $area = AreaRiset::create([
+                    'kode_area' => $areaData['kode'],
+                    'nama_area' => $areaData['nama'],
+                    'deskripsi' => $areaData['deskripsi'],
+                    'contoh_studi_kasus' => $areaData['studi'],
+                    'tujuan_masalah' => $areaData['tujuan'],
+                    'tipe_sistem' => $areaData['tipe'],
+                    'target_arketipe' => $areaData['target'],
+                    'level_kesulitan' => $areaData['level'],
+                ]);
 
-        // === PENG: Pengembangan Aplikasi ===
-        $peng01 = AreaRiset::create([
-            'kode_area' => 'PENG-01',
-            'nama_area' => 'Pengembangan Aplikasi Mobile Cross-platform',
-            'deskripsi' => 'Membangun aplikasi untuk platform Android dan iOS menggunakan satu codebase (spt Flutter atau React Native) untuk efisiensi pengembangan.',
-            'kata_kunci_teknologi' => 'Flutter, React Native, Dart, JavaScript, Firebase, SQLite',
-            'kata_kunci_metode' => 'Declarative UI, State Management (Provider, Redux, Bloc), Integrasi API',
-            'contoh_studi_kasus' => 'Pembuatan aplikasi e-learning atau sistem absensi online cross-platform menggunakan Flutter',
-            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
-            'tipe_sistem' => 'Sistem Pengujian Otomatis',
-        ]);
-        $peng01->minatBidangs()->attach($peng->id);
+                $area->minatBidangs()->attach($primaryMinat->id);
 
-        $peng02 = AreaRiset::create([
-            'kode_area' => 'PENG-02',
-            'nama_area' => 'Pengembangan Aplikasi Web (Full-stack)',
-            'deskripsi' => 'Merancang dan mengimplementasikan sisi frontend (UI) dan backend (logika server, database) dari sebuah aplikasi web secara terintegrasi.',
-            'kata_kunci_teknologi' => 'Laravel, Node.js (Express), React, Vue.js, MySQL, PostgreSQL, TailwindCSS',
-            'kata_kunci_metode' => 'REST API, MVC (Model-View-Controller), Server-Side Rendering (SSR), Single Page Application (SPA)',
-            'contoh_studi_kasus' => 'Sistem informasi geografis (GIS) pemetaan UMKM berbasis web menggunakan MERN stack (MongoDB, Express, React, Node)',
-            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
-            'tipe_sistem' => 'Sistem Pengujian Otomatis',
-        ]);
-        $peng02->minatBidangs()->attach($peng->id);
+                foreach ($areaData['relasi_minat'] ?? [] as $relasiKode) {
+                    $relasi = $minatBidangs[$relasiKode] ?? null;
+                    if ($relasi) {
+                        $area->minatBidangs()->attach($relasi->id);
+                    }
+                }
 
-        $peng03 = AreaRiset::create([
-            'kode_area' => 'PENG-03',
-            'nama_area' => 'Progressive Web Apps (PWA)',
-            'deskripsi' => 'Penelitian tentang aplikasi web yang memberikan pengalaman seperti aplikasi native, termasuk kemampuan offline, push notification, dan instalasi di homescreen.',
-            'kata_kunci_teknologi' => 'Service Workers, Web App Manifest, Cache API, JavaScript, Workbox',
-            'kata_kunci_metode' => 'Offline-first, Push Notification API, Background Sync',
-            'contoh_studi_kasus' => 'Implementasi PWA pada website toko online untuk meningkatkan konversi dan user engagement',
-            'tujuan_masalah' => 'Peningkatan Kualitas dan Reliabilitas Aplikasi Mobile Banking',
-            'tipe_sistem' => 'Sistem Pengujian Otomatis',
-        ]);
-        $peng03->minatBidangs()->attach($peng->id);
+                $this->syncTags($area, $areaData['tags'] ?? []);
+            }
+        }
+    }
 
-        // === AI: Kecerdasan Buatan ===
-        $ai01 = AreaRiset::create([
-            'kode_area' => 'AI-01',
-            'nama_area' => 'Machine Learning (Klasifikasi/Prediksi)',
-            'deskripsi' => 'Menggunakan algoritma untuk melatih model agar dapat mengklasifikasikan data ke dalam kategori tertentu atau memprediksi hasil di masa depan berdasarkan data historis.',
-            'kata_kunci_teknologi' => 'Python, Scikit-learn, TensorFlow, Pandas, Jupyter',
-            'kata_kunci_metode' => 'Decision Tree (CART, C4.5), K-Nearest Neighbors (KNN), Support Vector Machine (SVM), Regresi Linier/Logistik, Naive Bayes',
-            'contoh_studi_kasus' => 'Prediksi kelulusan mahasiswa tepat waktu menggunakan algoritma C4.5 berdasarkan data akademik',
-            'tujuan_masalah' => 'Prediksi Hasil Akademik Mahasiswa untuk Intervensi Dini',
-            'tipe_sistem' => 'Model Machine Learning Klasifikasi',
-        ]);
-        $ai01->minatBidangs()->attach($ai->id);
+    private function syncTags(AreaRiset $area, array $tagGroups): void
+    {
+        $tagIds = [];
 
-        $ai02 = AreaRiset::create([
-            'kode_area' => 'AI-02',
-            'nama_area' => 'Deep Learning (Neural Networks)',
-            'deskripsi' => 'Penerapan jaringan syaraf tiruan dengan banyak lapisan (deep neural networks) untuk menyelesaikan masalah kompleks seperti pengenalan gambar atau bahasa.',
-            'kata_kunci_teknologi' => 'TensorFlow, Keras, PyTorch, OpenCV',
-            'kata_kunci_metode' => 'Artificial Neural Network (ANN), Convolutional Neural Network (CNN), Recurrent Neural Network (RNN)',
-            'contoh_studi_kasus' => 'Klasifikasi jenis kendaraan di jalan tol secara real-time menggunakan CNN',
-            'tujuan_masalah' => 'Pengembangan Sistem Computer Vision untuk Surveillance Otomatis',
-            'tipe_sistem' => 'Deep Learning Model untuk Pengenalan Gambar',
-        ]);
-        $ai02->minatBidangs()->attach($ai->id);
+        foreach (['teknologi' => 'TEKNOLOGI', 'metode' => 'METODE'] as $key => $type) {
+            foreach ($tagGroups[$key] ?? [] as $tagName) {
+                $name = trim($tagName);
+                if ($name === '') {
+                    continue;
+                }
 
-        $ai03 = AreaRiset::create([
-            'kode_area' => 'AI-03',
-            'nama_area' => 'Sistem Pakar & Logika Fuzzy',
-            'deskripsi' => 'Membangun sistem berbasis pengetahuan (knowledge-based) untuk meniru penalaran seorang pakar atau menangani ketidakpastian data menggunakan logika fuzzy.',
-            'kata_kunci_teknologi' => 'PHP, Python, (Framework internal), MATLAB',
-            'kata_kunci_metode' => 'Rule-Based, Forward Chaining, Backward Chaining, Certainty Factor, Fuzzy (Mamdan, Sugeno)',
-            'contoh_studi_kasus' => 'Sistem pakar untuk diagnosis dini penyakit tanaman padi menggunakan metode Certainty Factor',
-            'tujuan_masalah' => 'Peningkatan Akurasi Diagnosis Penyakit Tanaman',
-            'tipe_sistem' => 'Sistem Pakar Berbasis Certainty Factor',
-        ]);
-        $ai03->minatBidangs()->attach($ai->id);
+                $tag = Tag::firstOrCreate([
+                    'nama_tag' => $name,
+                    'tipe' => $type,
+                ]);
 
-        $ai04 = AreaRiset::create([
-            'kode_area' => 'AI-04',
-            'nama_area' => 'Algoritma Optimasi (Evolusioner)',
-            'deskripsi' => 'Menggunakan algoritma yang terinspirasi dari alam (seperti evolusi atau perilaku koloni) untuk menemukan solusi terbaik dari sebuah masalah penjadwalan atau pencarian rute.',
-            'kata_kunci_teknologi' => 'Python, MATLAB',
-            'kata_kunci_metode' => 'Algoritma Genetika, Particle Swarm Optimization (PSO), Ant Colony Optimization (ACO)',
-            'contoh_studi_kasus' => 'Optimasi penjadwalan mata kuliah di universitas menggunakan Algoritma Genetika',
-            'tujuan_masalah' => 'Peningkatan Efisiensi Penjadwalan Akademik',
-            'tipe_sistem' => 'Algoritma Genetika untuk Optimasi Schedule',
-        ]);
-        $ai04->minatBidangs()->attach($ai->id);
+                $tagIds[] = $tag->id;
+            }
+        }
 
-        // === DATA: Sains Data & Big Data ===
-        $data01 = AreaRiset::create([
-            'kode_area' => 'DATA-01',
-            'nama_area' => 'Data Mining & Text Mining',
-            'deskripsi' => 'Fokus pada penerapan algoritma untuk menemukan pola tersembunyi (hidden patterns) dan asosiasi (aturan) dari dalam dataset besar, baik terstruktur (database) maupun tidak terstruktur (teks).',
-            'kata_kunci_teknologi' => 'Python (Pandas, Scikit-learn), R, Weka, RapidMiner, NLTK, Sastrawi',
-            'kata_kunci_metode' => 'Clustering (K-Means, DBSCAN), Asosiasi (Market Basket Analysis, Apriori), Klasifikasi, Preprocessing Data, TF-IDF',
-            'contoh_studi_kasus' => 'Analisis pola belanja pelanggan di supermarket untuk menentukan tata letak produk menggunakan algoritma Apriori',
-            'tujuan_masalah' => 'Identifikasi Pola Belanja Konsumen untuk Optimasi Tata Letak Toko',
-            'tipe_sistem' => 'Model Analisis Data Mining',
-        ]);
-        $data01->minatBidangs()->attach($data->id);
+        if (!empty($tagIds)) {
+            $area->tags()->syncWithoutDetaching($tagIds);
+        }
+    }
 
-        $data02 = AreaRiset::create([
-            'kode_area' => 'DATA-02',
-            'nama_area' => 'Sistem Rekomendasi (Recommender Systems)',
-            'deskripsi' => 'Merancang sistem yang dapat memberikan saran atau rekomendasi item (produk, film, berita) secara personal kepada pengguna berdasarkan preferensi atau perilaku masa lalu.',
-            'kata_kunci_teknologi' => 'Python (Surprise, Scikit-learn), FastAPI, MySQL, MongoDB',
-            'kata_kunci_metode' => 'Collaborative Filtering (User-based, Item-based), Content-Based Filtering, Hybrid Filtering',
-            'contoh_studi_kasus' => 'Pembuatan sistem rekomendasi topik penelitian untuk mahasiswa (seperti sistem Anda) menggunakan hybrid filtering',
-            'tujuan_masalah' => 'Sistem Rekomendasi Personal untuk Meningkatkan User Engagement',
-            'tipe_sistem' => 'Sistem Rekomendasi Berbasis Machine Learning',
-        ]);
-        $data02->minatBidangs()->attach($data->id);
-
-        $data03 = AreaRiset::create([
-            'kode_area' => 'DATA-03',
-            'nama_area' => 'Analisis Sentimen',
-            'deskripsi' => 'Menggunakan text mining dan NLP untuk mengklasifikasikan opini atau emosi (positif, negatif, netral) dari data teks, seperti ulasan produk atau tweet media sosial.',
-            'kata_kunci_teknologi' => 'Python (NLTK, Scikit-learn, Sastrawi), Twitter API',
-            'kata_kunci_metode' => 'Lexicon-Based, Machine Learning (Naive Bayes, SVM), Deep Learning (RNN, LSTM), Word Embedding',
-            'contoh_studi_kasus' => 'Analisis sentimen publik terhadap kebijakan pemerintah baru berdasarkan data dari platform Twitter',
-            'tujuan_masalah' => 'Evaluasi Opini Publik pada Kebijakan Pemerintah Melalui Media Sosial',
-            'tipe_sistem' => 'Model Analisis Sentimen Teks',
-        ]);
-        $data03->minatBidangs()->attach($data->id);
-
-        // === CITRA: Pemrosesan Citra & Visi Komputer ===
-        $citra01 = AreaRiset::create([
-            'kode_area' => 'CITRA-01',
-            'nama_area' => 'Pengenalan Objek (Object Detection/Recognition)',
-            'deskripsi' => 'Melatih model untuk dapat mengidentifikasi dan melokalisasi (memberi kotak) objek-objek tertentu di dalam sebuah gambar atau video secara real-time.',
-            'kata_kunci_teknologi' => 'Python, OpenCV, TensorFlow, Keras, YOLO (You Only Look Once)',
-            'kata_kunci_metode' => 'CNN (Convolutional Neural Network), R-CNN, SSD (Single Shot MultiBox Detector), YOLO',
-            'contoh_studi_kasus' => 'Sistem penghitung jumlah kendaraan di persimpangan jalan raya menggunakan YOLO dan kamera CCTV',
-            'tujuan_masalah' => 'Pemeliharaan Ketertiban Lalu Lintas Jalan Raya',
-            'tipe_sistem' => 'Sistem Computer Vision Real-time',
-        ]);
-        $citra01->minatBidangs()->attach($citra->id);
-
-        $citra02 = AreaRiset::create([
-            'kode_area' => 'CITRA-02',
-            'nama_area' => 'Analisis Citra Medis',
-            'deskripsi' => 'Penerapan deep learning dan pemrosesan citra untuk membantu diagnosis penyakit dengan menganalisis gambar medis seperti X-Ray, CT Scan, atau MRI.',
-            'kata_kunci_teknologi' => 'Python, OpenCV, Keras, TensorFlow, Scikit-image, DICOM',
-            'kata_kunci_metode' => 'Segmentasi Citra (U-Net), Klasifikasi (CNN), Ekstraksi Fitur, Image Enhancement',
-            'contoh_studi_kasus' => 'Klasifikasi citra X-Ray paru-paru untuk deteksi dini pneumonia atau COVID-19 menggunakan CNN',
-            'tujuan_masalah' => 'Peningkatan Akurasi Diagnosis Penyakit Melalui Citra Medis',
-            'tipe_sistem' => 'Model Computer Vision untuk Aplikasi Medis',
-        ]);
-        $citra02->minatBidangs()->attach($citra->id);
-
-        $citra03 = AreaRiset::create([
-            'kode_area' => 'CITRA-03',
-            'nama_area' => 'Pengenalan Karakter & Wajah (OCR & Face Recognition)',
-            'deskripsi' => 'Mengembangkan sistem yang dapat "membaca" teks dari gambar (OCR) atau mengidentifikasi individu berdasarkan fitur wajah mereka (face recognition).',
-            'kata_kunci_teknologi' => 'Python, OpenCV, Tesseract, Dlib, face_recognition library',
-            'kata_kunci_metode' => 'Ekstraksi Fitur (Haar Cascades, HOG), Deep Learning (Siamese Networks, FaceNet), Template Matching',
-            'contoh_studi_kasus' => 'Sistem absensi mahasiswa otomatis menggunakan face recognition di ruang kelas',
-            'tujuan_masalah' => 'Sistem Absensi Otomatis Mahasiswa Berbasis Computer Vision',
-            'tipe_sistem' => 'Sistem Biometrik untuk Identifikasi Identitas',
-        ]);
-        $citra03->minatBidangs()->attach($citra->id);
-
-        // === NLP: Pemrosesan Bahasa Alami ===
-        $nlp01 = AreaRiset::create([
-            'kode_area' => 'NLP-01',
-            'nama_area' => 'Chatbot & Asisten Virtual',
-            'deskripsi' => 'Membangun agen percakapan (conversational agent) yang dapat memahami pertanyaan pengguna dalam bahasa alami dan memberikan jawaban yang relevan.',
-            'kata_kunci_teknologi' => 'Python, RASA, Google Dialogflow, Telegram Bot API, WhatsApp API',
-            'kata_kunci_metode' => 'Intent Classification, Entity Extraction, Sequence-to-Sequence (Seq2Seq), Retrieval-based, Generative-based',
-            'contoh_studi_kasus' => 'Pembuatan chatbot layanan pelanggan untuk e-commerce yang dapat menjawab pertanyaan seputar status pesanan',
-            'tujuan_masalah' => 'Otomatisasi Layanan Pelanggan E-commerce Melalui Interaksi Natural Language',
-            'tipe_sistem' => 'Chatbot Asisten Virtual',
-        ]);
-        $nlp01->minatBidangs()->attach($nlp->id);
-
-        $nlp02 = AreaRiset::create([
-            'kode_area' => 'NLP-02',
-            'nama_area' => 'Penerjemahan & Ringkasan Teks',
-            'deskripsi' => 'Menggunakan model deep learning (biasanya berbasis Transformer) untuk menerjemahkan teks dari satu bahasa ke bahasa lain, atau meringkas dokumen panjang menjadi poin-poin penting.',
-            'kata_kunci_teknologi' => 'Python, TensorFlow, PyTorch, Hugging Face (Transformers, BERT, GPT)',
-            'kata_kunci_metode' => 'Machine Translation (SMT, NMT), Text Summarization (Ekstraktif, Abstraktif), Attention Mechanism',
-            'contoh_studi_kasus' => 'Sistem peringkas berita otomatis dari berbagai portal online menggunakan metode ekstraktif',
-            'tujuan_masalah' => 'Efisiensi Pemrosesan Dokumen Berita Menggunakan AI',
-            'tipe_sistem' => 'Model NLP untuk Penerjemahan dan Ringkasan',
-        ]);
-        $nlp02->minatBidangs()->attach($nlp->id);
-
-        $nlp03 = AreaRiset::create([
-            'kode_area' => 'NLP-03',
-            'nama_area' => 'Klasifikasi Teks & Deteksi Hoaks',
-            'deskripsi' => 'Memanfaatkan machine learning untuk mengkategorikan dokumen teks secara otomatis, seperti memfilter email spam atau mengidentifikasi berita palsu (hoaks).',
-            'kata_kunci_teknologi' => 'Python, Scikit-learn, NLTK, Sastrawi, Hugging Face',
-            'kata_kunci_metode' => 'TF-IDF, Word Embedding (Word2Vec), Klasifikasi (Naive Bayes, SVM, BERT)',
-            'contoh_studi_kasus' => 'Pengembangan plugin browser untuk mendeteksi judul berita hoaks menggunakan model klasifikasi teks',
-            'tujuan_masalah' => 'Pencegahan Penyebaran Berita Palsu di Media Sosial',
-            'tipe_sistem' => 'Model Klasifikasi Teks untuk Deteksi Hoaks',
-        ]);
-        $nlp03->minatBidangs()->attach($nlp->id);
-
-        // === HCI: Desain UI/UX & Interaksi Manusia-Komputer ===
-        $hci01 = AreaRiset::create([
-            'kode_area' => 'HCI-01',
-            'nama_area' => 'Evaluasi Usability (Pengujian Kegunaan)',
-            'deskripsi' => 'Penelitian untuk mengukur tingkat kemudahan, efisiensi, dan kepuasan pengguna saat berinteraksi dengan sebuah interface aplikasi.',
-            'kata_kunci_teknologi' => 'Figma, Sketch, Maze, Hotjar, Google Analytics, Perangkat Eye-tracking',
-            'kata_kunci_metode' => 'Usability Testing, Heuristic Evaluation (Nielsen), Cognitive Walkthrough, SUS (System Usability Scale), Think Aloud Protocol',
-            'contoh_studi_kasus' => 'Analisis perbandingan usability antara aplikasi mobile banking Bank A dan Bank B menggunakan metode SUS',
-            'tujuan_masalah' => 'Pengukuran dan Peningkatan Tingkat Kemudahan Penggunaan Aplikasi',
-            'tipe_sistem' => 'Framework Evaluasi Usability',
-        ]);
-        $hci01->minatBidangs()->attach($hci->id);
-
-        $hci02 = AreaRiset::create([
-            'kode_area' => 'HCI-02',
-            'nama_area' => 'Desain Pengalaman Pengguna (User Experience - UX)',
-            'deskripsi' => 'Fokus pada perancangan alur kerja, arsitektur informasi, dan prototype untuk memastikan keseluruhan pengalaman pengguna terasa logis, intuitif, dan memecahkan masalah.',
-            'kata_kunci_teknologi' => 'Figma, Adobe XD, Balsamiq, Miro (untuk User Flow)',
-            'kata_kunci_metode' => 'Design Thinking, User Persona, User Journey Mapping, Card Sorting, Wireframing, Prototyping',
-            'contoh_studi_kasus' => 'Perancangan prototype high-fidelity aplikasi konsultasi kesehatan mental berbasis user persona dan journey mapping',
-            'tujuan_masalah' => 'Perancangan Antarmuka yang Lebih Intuitif dan Memuaskan',
-            'tipe_sistem' => 'UI/UX Design System',
-        ]);
-        $hci02->minatBidangs()->attach($hci->id);
-
-        $hci03 = AreaRiset::create([
-            'kode_area' => 'HCI-03',
-            'nama_area' => 'Gamification (Gamifikasi)',
-            'deskripsi' => 'Menerapkan elemen dan mekanika desain game (seperti poin, badge, leaderboard) ke dalam konteks non-game untuk meningkatkan motivasi dan engagement pengguna.',
-            'kata_kunci_teknologi' => '(Tergantung platform, misal: Laravel/PHP, JavaScript)',
-            'kata_kunci_metode' => 'Points, Badges, Leaderboards (PBL), Octalysis Framework, Self-Determination Theory',
-            'contoh_studi_kasus' => 'Implementasi gamifikasi pada platform e-learning untuk meningkatkan motivasi belajar mahasiswa',
-            'tujuan_masalah' => 'Peningkatan Motivasi Pembelajaran Melalui Mekanika Game',
-            'tipe_sistem' => 'E-Learning Platform dengan Elemen Gamifikasi',
-        ]);
-        $hci03->minatBidangs()->attach($hci->id);
-
-        // === GRAF: Grafika Komputer & Multimedia ===
-        $graf01 = AreaRiset::create([
-            'kode_area' => 'GRAF-01',
-            'nama_area' => 'Pengembangan Game (2D/3D)',
-            'deskripsi' => 'Merancang dan membangun game interaktif, mencakup gameplay, grafis, audio, dan fisika di dalamnya.',
-            'kata_kunci_teknologi' => 'Unity, Unreal Engine, Godot, Blender, C#, C++, Pygame',
-            'kata_kunci_metode' => 'Game Design Document (GDD), Finite State Machine (FSM) (untuk AI musuh), Collision Detection, Shaders',
-            'contoh_studi_kasus' => 'Pembuatan game edukasi (serious game) 3D untuk simulasi mitigasi bencana alam menggunakan Unity',
-            'tujuan_masalah' => 'Pembelajaran Interaktif untuk Mitigasi Bencana Alam',
-            'tipe_sistem' => 'Game Edukasi 3D',
-        ]);
-        $graf01->minatBidangs()->attach($graf->id);
-
-        $graf02 = AreaRiset::create([
-            'kode_area' => 'GRAF-02',
-            'nama_area' => 'Augmented Reality (AR)',
-            'deskripsi' => 'Mengembangkan aplikasi yang menggabungkan objek virtual 2D/3D ke dalam lingkungan dunia nyata secara real-time melalui kamera smartphone atau perangkat khusus.',
-            'kata_kunci_teknologi' => 'Unity, Vuforia, ARCore (Android), ARKit (iOS), Blender',
-            'kata_kunci_metode' => 'Marker-based Tracking, Markerless Tracking (SLAM), Image Target',
-            'contoh_studi_kasus' => 'Aplikasi AR untuk visualisasi furnitur di dalam ruangan rumah melalui kamera smartphone',
-            'tujuan_masalah' => 'Visualisasi Produk Interior Berbasis Augmented Reality',
-            'tipe_sistem' => 'Aplikasi Mobile dengan Teknologi AR',
-        ]);
-        $graf02->minatBidangs()->attach($graf->id);
-
-        $graf03 = AreaRiset::create([
-            'kode_area' => 'GRAF-03',
-            'nama_area' => 'Virtual Reality (VR)',
-            'deskripsi' => 'Menciptakan lingkungan simulasi 3D yang imersif di mana pengguna dapat berinteraksi menggunakan perangkat headset VR.',
-            'kata_kunci_teknologi' => 'Unity, Unreal Engine, Oculus SDK, SteamVR, Blender, 3ds Max',
-            'kata_kunci_metode' => '3D Modelling, Environment Design, VR Interaction Design, Simulasi Fisika',
-            'contoh_studi_kasus' => 'Pengembangan simulasi terapi VR untuk mengatasi fobia ketinggian (acrophobia)',
-            'tujuan_masalah' => 'Terapi Psikologis untuk Atasi Fobia Melalui Immersive Simulation',
-            'tipe_sistem' => 'Aplikasi VR Terapi Psikologis',
-        ]);
-        $graf03->minatBidangs()->attach($graf->id);
-
-        // === JAR: Jaringan & Keamanan Siber ===
-        $jar01 = AreaRiset::create([
-            'kode_area' => 'JAR-01',
-            'nama_area' => 'Keamanan Jaringan & Forensik Digital',
-            'deskripsi' => 'Penelitian tentang teknik untuk melindungi infrastruktur jaringan dari serangan, atau menganalisis bukti digital (forensik) setelah terjadi insiden keamanan.',
-            'kata_kunci_teknologi' => 'Wireshark, Nmap, Metasploit, Snort, pfSense, FTK Imager, Autopsy',
-            'kata_kunci_metode' => 'Penetration Testing, Analisis Malware, Network Traffic Analysis, Intrusion Detection System (IDS), Firewall Configuration',
-            'contoh_studi_kasus' => 'Analisis forensik digital pada file gambar untuk mengungkap pesan tersembunyi (steganografi)',
-            'tujuan_masalah' => 'Penguatan Keamanan Infrastruktur Jaringan Perusahaan',
-            'tipe_sistem' => 'Sistem Forensik Digital dan Penetration Testing',
-        ]);
-        $jar01->minatBidangs()->attach($jar->id);
-
-        $jar02 = AreaRiset::create([
-            'kode_area' => 'JAR-02',
-            'nama_area' => 'Kriptografi & Steganografi',
-            'deskripsi' => 'Fokus pada ilmu penyandian pesan (Kriptografi) agar tidak dapat dibaca pihak lain, atau penyembunyian pesan di dalam media digital lain (Steganografi).',
-            'kata_kunci_teknologi' => 'Python, MATLAB, OpenSSL',
-            'kata_kunci_metode' => 'Algoritma (AES, RSA, DES), Hashing (SHA-256), Public Key Infrastructure (PKI), Least Significant Bit (LSB)',
-            'contoh_studi_kasus' => 'Implementasi algoritma AES-256 untuk pengamanan data rekam medis pasien di aplikasi web',
-            'tujuan_masalah' => 'Pengamanan Data Sensitif dalam Sistem Informasi Kesehatan',
-            'tipe_sistem' => 'Implementasi Algoritma Kriptografi',
-        ]);
-        $jar02->minatBidangs()->attach($jar->id);
-
-        $jar03 = AreaRiset::create([
-            'kode_area' => 'JAR-03',
-            'nama_area' => 'Manajemen Jaringan & QoS',
-            'deskripsi' => 'Studi tentang optimalisasi kinerja jaringan komputer, terutama dalam hal alokasi bandwidth dan prioritas data untuk layanan kritis (spt video call).',
-            'kata_kunci_teknologi' => 'Cisco Packet Tracer, GNS3, Mikrotik RouterOS, PRTG Network Monitor',
-            'kata_kunci_metode' => 'Quality of Service (QoS), Load Balancing, Traffic Shaping, Routing Protocols (OSPF, BGP), VPN',
-            'contoh_studi_kasus' => 'Analisis kinerja routing protocol OSPF dan EIGRP pada jaringan enterprise menggunakan simulasi GNS3',
-            'tujuan_masalah' => 'Optimalisasi Kinerja Jaringan untuk Layanan Kritikal',
-            'tipe_sistem' => 'Sistem Manajemen Jaringan dengan QoS',
-        ]);
-        $jar03->minatBidangs()->attach($jar->id);
-
-        // === IOT: Sistem Tertanam & Internet of Things ===
-        $iot01 = AreaRiset::create([
-            'kode_area' => 'IOT-01',
-            'nama_area' => 'Sistem Smart Home / Smart Building',
-            'deskripsi' => 'Mengembangkan sistem terintegrasi untuk mengontrol dan mengotomatisasi perangkat di rumah atau gedung (lampu, AC, keamanan) melalui internet.',
-            'kata_kunci_teknologi' => 'Arduino, Raspberry Pi, ESP32/ESP8266, NodeMCU, Firebase, Blynk, MQTT',
-            'kata_kunci_metode' => 'Wireless Sensor Network (WSN), Protokol (MQTT, HTTP), Real-time Data Processing',
-            'contoh_studi_kasus' => 'Rancang bangun sistem kontrol lampu dan kunci pintu otomatis berbasis aplikasi mobile dan platform IoT Blynk',
-            'tujuan_masalah' => 'Otomatisasi Kontrol Perangkat Rumah Tangga untuk Efisiensi Energi',
-            'tipe_sistem' => 'Sistem Smart Home IoT',
-        ]);
-        $iot01->minatBidangs()->attach($iot->id);
-
-        $iot02 = AreaRiset::create([
-            'kode_area' => 'IOT-02',
-            'nama_area' => 'Sistem Monitoring (Pertanian/Kesehatan/Lingkungan)',
-            'deskripsi' => 'Fokus pada pengumpulan data dari sensor di lapangan secara real-time untuk pemantauan jarak jauh, seperti memantau kelembaban tanah, detak jantung pasien, atau kualitas udara.',
-            'kata_kunci_teknologi' => 'Arduino, ESP32, LoRaWAN, Sensor (DHT22, pH, EKG), ThingsSpeak, Antares',
-            'kata_kunci_metode' => 'Data Logging, Remote Sensing, Data Visualization Dashboard',
-            'contoh_studi_kasus' => 'Sistem monitoring kualitas udara (PM2.5) berbasis IoT dan visualisasi dashboard web',
-            'tujuan_masalah' => 'Monitoring Kualitas Udara Sekitar Dengan Early Warning System',
-            'tipe_sistem' => 'Dashboard Monitoring IoT Real-time',
-        ]);
-        $iot02->minatBidangs()->attach($iot->id);
-
-        $iot03 = AreaRiset::create([
-            'kode_area' => 'IOT-03',
-            'nama_area' => 'Robotika & Sistem Kontrol',
-            'deskripsi' => 'Menggabungkan perangkat keras (mekanika), elektronika (sensor/aktuator), dan software (logika kontrol) untuk membuat robot atau sistem otomasi yang dapat bergerak atau melakukan tugas fisik.',
-            'kata_kunci_teknologi' => 'Arduino, Raspberry Pi, Motor Servo, Sensor Ultrasonik, OpenCV (untuk navigasi)',
-            'kata_kunci_metode' => 'Kontrol PID (Proportional-Integral-Derivative), Pathfinding (A*), Kinematics',
-            'contoh_studi_kasus' => 'Pembuatan robot pemilah sampah otomatis berdasarkan jenis material menggunakan sensor dan machine learning',
-            'tujuan_masalah' => 'Otomatisasi Pemilah Sampah Berbasis Computer Vision',
-            'tipe_sistem' => 'Robot Pemilah Sampah Otomatis',
-        ]);
-        $iot03->minatBidangs()->attach($iot->id);
+    private function dataset(): array
+    {
+        return [
+            'RPL' => [
+                [
+                    'kode' => 'RPL-01',
+                    'nama' => 'Arsitektur Microservices Resilien Berbasis Observability',
+                    'deskripsi' => 'Merancang platform microservices dengan tracing end-to-end, resiliency pattern, dan pembelajaran dari chaos experiment agar layanan e-commerce tahan lonjakan traffic 2025.',
+                    'tujuan' => 'Meningkatkan reliability layanan digital melalui observability dan otomatisasi perbaikan.',
+                    'tipe' => 'Platform Observability & SRE Dashboard',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Migrasi modul pembayaran B2B menjadi layanan terpisah, Stress test flash-sale menggunakan chaos engineering',
+                    'tags' => [
+                        'teknologi' => ['Kubernetes', 'Istio', 'OpenTelemetry', 'Grafana Tempo', 'Kafka'],
+                        'metode' => ['Domain-Driven Design', 'Chaos Engineering', 'Circuit Breaker', 'SAGA Pattern'],
+                    ],
+                ],
+                [
+                    'kode' => 'RPL-02',
+                    'nama' => 'DevSecOps Intelligent Pipeline dengan Policy-as-Code',
+                    'deskripsi' => 'Mengintegrasikan scanning keamanan, compliance, dan AI code reviewer langsung di pipeline CI/CD agar rilis harian tetap aman.',
+                    'tujuan' => 'Mengurangi kerentanan perangkat lunak sejak tahap build melalui otomatisasi DevSecOps.',
+                    'tipe' => 'Pipeline Observability & Policy-as-Code Service',
+                    'target' => 'ARCHITECT',
+                    'level' => 2,
+                    'studi' => 'Integrasi Trivy dan OPA di GitLab CI, Dashboard compliance real-time untuk startup fintech',
+                    'tags' => [
+                        'teknologi' => ['GitHub Actions', 'GitLab CI', 'Trivy', 'SonarQube', 'Open Policy Agent'],
+                        'metode' => ['DevSecOps', 'Shift-left Security', 'Policy as Code', 'Continuous Compliance'],
+                    ],
+                ],
+                [
+                    'kode' => 'RPL-03',
+                    'nama' => 'Green Software Engineering Metrics Platform',
+                    'deskripsi' => 'Membangun modul analitik jejak karbon aplikasi dengan memantau konsumsi energi kode dan workload cloud.',
+                    'tujuan' => 'Mendorong pengembangan perangkat lunak hemat energi dengan insight berbasis data.',
+                    'tipe' => 'Dashboard GreenOps & Sustainability Analytics',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Benchmark emisi microservices vs monolith, Rekomendasi jadwal deployment hemat energi',
+                    'tags' => [
+                        'teknologi' => ['Carbon Aware SDK', 'PowerBI', 'Laravel', 'PostgreSQL'],
+                        'metode' => ['GreenOps', 'Energy-aware Profiling', 'Digital Sustainability Index'],
+                    ],
+                ],
+                [
+                    'kode' => 'RPL-04',
+                    'nama' => 'Software Supply Chain Security Control Tower',
+                    'deskripsi' => 'Memonitor material bill of software (SBOM) serta reputasi dependensi untuk mencegah serangan supply chain.',
+                    'tujuan' => 'Menghadirkan visibilitas penuh terhadap dependensi kritis melalui scoring risiko otomatis.',
+                    'tipe' => 'Supply Chain Security Dashboard',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Audit SBOM untuk aplikasi kesehatan digital, Integrasi tanda tangan Sigstore ke proses rilis',
+                    'tags' => [
+                        'teknologi' => ['Sigstore', 'SLSA', 'Harbor', 'CycloneDX'],
+                        'metode' => ['SBOM Analysis', 'Risk Scoring', 'Threat Modeling'],
+                    ],
+                ],
+                [
+                    'kode' => 'RPL-05',
+                    'nama' => 'AI-assisted QA Automation Studio',
+                    'deskripsi' => 'Menggabungkan generative AI untuk membuat test case dan self-healing locator pada suite otomatisasi.',
+                    'tujuan' => 'Mempercepat kualitas rilis dengan pengujian adaptif dan rekomendasi coverage.',
+                    'tipe' => 'Quality Intelligence & Test Automation Platform',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Auto generate scenario regresi aplikasi bank digital, Self-healing test untuk aplikasi super-app',
+                    'tags' => [
+                        'teknologi' => ['Playwright', 'LangChain', 'OpenAI API', 'Docker'],
+                        'metode' => ['Generative Testing', 'Test Impact Analysis', 'Self-healing Automation'],
+                    ],
+                ],
+                [
+                    'kode' => 'RPL-06',
+                    'nama' => 'Low-code Governance Toolkit',
+                    'deskripsi' => 'Menentukan aturan, komponen reusable, dan audit trail untuk aplikasi low-code/no-code di enterprise.',
+                    'tujuan' => 'Menjaga konsistensi desain serta keamanan solusi low-code buatan citizen developer.',
+                    'tipe' => 'Governance Portal & Component Library',
+                    'target' => 'GENERAL',
+                    'level' => 1,
+                    'studi' => 'Template approval workflow untuk dashboard HR, Library UI konsisten bagi citizen developer',
+                    'tags' => [
+                        'teknologi' => ['Budibase', 'Retool', 'Laravel', 'MySQL'],
+                        'metode' => ['Component Governance', 'Design System', 'GRC Checklist'],
+                    ],
+                ],
+            ],
+            'PENG' => [
+                [
+                    'kode' => 'PENG-01',
+                    'nama' => 'SuperApp Modular Frontend Platform',
+                    'deskripsi' => 'Membangun arsitektur micro-frontend dengan desain sistem tunggal agar fitur baru dapat dilepas pasang tanpa downtime.',
+                    'tujuan' => 'Mempercepat delivery fitur multi-tim di aplikasi superapp.',
+                    'tipe' => 'Modular Frontend Orchestrator',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Portal layanan publik multi modul, Superapp logistik dengan bundling fitur lokal',
+                    'tags' => [
+                        'teknologi' => ['React', 'Module Federation', 'Tailwind', 'Nx'],
+                        'metode' => ['Design System Tokens', 'Micro Frontend', 'Feature Flagging'],
+                    ],
+                ],
+                [
+                    'kode' => 'PENG-02',
+                    'nama' => 'Offline-first Retail POS dengan Edge Sync',
+                    'deskripsi' => 'Menghadirkan POS mobile yang tetap berfungsi saat koneksi terbatas dan melakukan sinkronisasi konflik otomatis.',
+                    'tujuan' => 'Menjamin transaksi tetap tercatat di daerah dengan internet tidak stabil.',
+                    'tipe' => 'Offline-first POS Platform',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Aplikasi kasir pasar modern dengan Cloudflare Workers, Sinkronisasi stok franchise makanan',
+                    'tags' => [
+                        'teknologi' => ['Flutter', 'SQLite', 'CouchDB', 'Cloudflare Workers'],
+                        'metode' => ['Offline-first', 'Conflict Resolution', 'Edge Synchronization'],
+                    ],
+                ],
+                [
+                    'kode' => 'PENG-03',
+                    'nama' => 'Generative UI Builder untuk UKM',
+                    'deskripsi' => 'Menyediakan studio pembuatan antarmuka otomatis dari prompt teks yang langsung memproduksi komponen siap pakai.',
+                    'tujuan' => 'Mengurangi waktu desain untuk bisnis kecil yang ingin go-digital.',
+                    'tipe' => 'Generative UI Studio',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Generator dashboard toko online berbasis prompt Bahasa Indonesia, Auto layout admin panel untuk koperasi',
+                    'tags' => [
+                        'teknologi' => ['Next.js', 'Figma API', 'Tailwind', 'GenAI'],
+                        'metode' => ['Prompt Engineering', 'Component Suggestion', 'Design Tokens'],
+                    ],
+                ],
+                [
+                    'kode' => 'PENG-04',
+                    'nama' => 'PWA Accessibility & Performance Suite',
+                    'deskripsi' => 'Toolkit untuk memastikan PWA siap audit WCAG 2.2 sekaligus optimal di perangkat low-end.',
+                    'tujuan' => 'Memastikan aplikasi web setara bagi semua pengguna tanpa mengorbankan kecepatan.',
+                    'tipe' => 'Progressive Web Testing Suite',
+                    'target' => 'ANALIS',
+                    'level' => 1,
+                    'studi' => 'Audit platform belajar daring untuk screen reader, Optimasi e-commerce PWA di jaringan 3G',
+                    'tags' => [
+                        'teknologi' => ['Lighthouse', 'Storybook', 'Workbox'],
+                        'metode' => ['Accessibility Audit', 'Performance Budget', 'User Journey Mapping'],
+                    ],
+                ],
+                [
+                    'kode' => 'PENG-05',
+                    'nama' => 'Composable Commerce Starter Kit',
+                    'deskripsi' => 'Blueprint toko online modern dengan pendekatan headless & BFF sehingga bisnis dapat merakit stack sesuai kebutuhan.',
+                    'tujuan' => 'Memberi fleksibilitas integrasi layanan pihak ketiga (payment, OMS, loyalty).',
+                    'tipe' => 'Composable Commerce Reference Architecture',
+                    'target' => 'ARCHITECT',
+                    'level' => 2,
+                    'studi' => 'Marketplace niche dengan BFF GraphQL, Integrasi modul loyalty dan live shopping',
+                    'tags' => [
+                        'teknologi' => ['Shopify Hydrogen', 'MedusaJS', 'GraphQL', 'Stripe'],
+                        'metode' => ['Composable Commerce', 'Backend for Frontend', 'API Orchestration'],
+                    ],
+                ],
+            ],
+            'AI' => [
+                [
+                    'kode' => 'AI-01',
+                    'nama' => 'Explainable Credit Risk Scoring (XAI)',
+                    'deskripsi' => 'Membangun model kredit modern dengan interpretabilitas lokal agar keputusan pinjaman dapat dijelaskan ke regulator.',
+                    'tujuan' => 'Mengurangi bias dan meningkatkan kepercayaan terhadap sistem AI pada sektor finansial.',
+                    'tipe' => 'Explainable AI Service Layer',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'Penjelasan skor koperasi digital, Dashboard fairness untuk BNPL',
+                    'tags' => [
+                        'teknologi' => ['Python', 'SHAP', 'TensorFlow', 'MLflow'],
+                        'metode' => ['Explainable AI', 'Fairness Metric', 'Model Monitoring'],
+                    ],
+                    'relasi_minat' => ['DATA'],
+                ],
+                [
+                    'kode' => 'AI-02',
+                    'nama' => 'Generative AI for Localized Content Studio',
+                    'deskripsi' => 'Menggunakan LLM lokal serta retrieval augmented generation untuk membuat konten pemasaran multi bahasa daerah.',
+                    'tujuan' => 'Mempercepat produksi konten yang sesuai budaya dan regulasi lokal.',
+                    'tipe' => 'RAG Content Automation Platform',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Asisten copywriting wisata daerah, Generator konten kampus dalam bahasa daerah',
+                    'tags' => [
+                        'teknologi' => ['LangChain', 'OpenAI', 'LlamaIndex', 'Pinecone'],
+                        'metode' => ['Retrieval Augmented Generation', 'Prompt Chaining', 'Guardrails'],
+                    ],
+                ],
+                [
+                    'kode' => 'AI-03',
+                    'nama' => 'Responsible AI Monitoring Platform',
+                    'deskripsi' => 'Menjaga lifecycle model dari sisi drift, audit, dan persetujuan etis sebelum deployment.',
+                    'tujuan' => 'Menyediakan governance AI yang dapat diaudit.',
+                    'tipe' => 'Responsible AI Operations Hub',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Approval workflow AI HRIS, Audit trail rekomendasi medis berbasis AI',
+                    'tags' => [
+                        'teknologi' => ['Weights & Biases', 'EvidentlyAI', 'Great Expectations'],
+                        'metode' => ['Model Risk Management', 'Bias Detection', 'AI Governance'],
+                    ],
+                ],
+                [
+                    'kode' => 'AI-04',
+                    'nama' => 'TinyML Edge Predictive Maintenance',
+                    'deskripsi' => 'Mengemas model ML ringan ke microcontroller untuk memantau vibrasi mesin tanpa koneksi konstan.',
+                    'tujuan' => 'Menurunkan downtime pabrik melalui deteksi dini di edge.',
+                    'tipe' => 'Edge AI Maintenance Kit',
+                    'target' => 'ARCHITECT',
+                    'level' => 2,
+                    'studi' => 'Monitoring motor listrik pabrik tekstil, Sensor pintu tol cerdas',
+                    'tags' => [
+                        'teknologi' => ['TensorFlow Lite', 'Edge Impulse', 'ESP32'],
+                        'metode' => ['TinyML', 'Signal Processing', 'Edge Deployment'],
+                    ],
+                    'relasi_minat' => ['IOT'],
+                ],
+                [
+                    'kode' => 'AI-05',
+                    'nama' => 'Multi-Agent AI Ops Assistant',
+                    'deskripsi' => 'Menata beberapa agen AI (diagnostik, remediation, knowledge) untuk membantu tim operasi TI.',
+                    'tujuan' => 'Mengotomatisasi respon insiden dengan reasoning kolaboratif antar agen.',
+                    'tipe' => 'AI Ops Multi-agent Orchestrator',
+                    'target' => 'GENERAL',
+                    'level' => 2,
+                    'studi' => 'Asisten troubleshooting untuk NOC kampus, Respon insiden cloud dengan natural language',
+                    'tags' => [
+                        'teknologi' => ['LangGraph', 'OpenSearch', 'Kubernetes'],
+                        'metode' => ['Multi-agent Reasoning', 'Playbook Automation', 'Incident Intelligence'],
+                    ],
+                ],
+            ],
+            'DATA' => [
+                [
+                    'kode' => 'DATA-01',
+                    'nama' => 'Streaming Analytics untuk Decision Intelligence',
+                    'deskripsi' => 'Membangun pipeline data real-time dari Kafka ke lakehouse untuk insight operasional instan.',
+                    'tujuan' => 'Memberikan dashboard detik-ke-detik bagi manajemen operasi.',
+                    'tipe' => 'Real-time Decision Intelligence Stack',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'Monitoring supply cold-chain, Analitik fraud transaksi e-wallet',
+                    'tags' => [
+                        'teknologi' => ['Kafka', 'Apache Flink', 'Delta Lake', 'dbt'],
+                        'metode' => ['Streaming ETL', 'Anomaly Detection', 'Data Contracts'],
+                    ],
+                ],
+                [
+                    'kode' => 'DATA-02',
+                    'nama' => 'DataOps Orchestration Hub',
+                    'deskripsi' => 'Menstandarkan pipeline batch dan streaming dengan template, CI/CD data, dan observability.',
+                    'tujuan' => 'Mengurangi error data pipeline lintas tim.',
+                    'tipe' => 'DataOps Automation Platform',
+                    'target' => 'ARCHITECT',
+                    'level' => 2,
+                    'studi' => 'Pusat data perguruan tinggi terpadu, Integrasi data rumah sakit multi cabang',
+                    'tags' => [
+                        'teknologi' => ['Dagster', 'Prefect', 'Great Expectations', 'Snowflake'],
+                        'metode' => ['DataOps', 'Orchestration', 'Data Observability'],
+                    ],
+                ],
+                [
+                    'kode' => 'DATA-03',
+                    'nama' => 'Privacy-preserving Data Clean Room',
+                    'deskripsi' => 'Kolaborasi analitik antar organisasi menggunakan differential privacy dan clean room.',
+                    'tujuan' => 'Memungkinkan analisis lintas dataset tanpa membocorkan data mentah.',
+                    'tipe' => 'Secure Data Collaboration Platform',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'Analitik pemasaran antar brand ritel, Studi kesehatan multi rumah sakit',
+                    'tags' => [
+                        'teknologi' => ['Snowflake Clean Room', 'PyDP', 'AWS Clean Rooms'],
+                        'metode' => ['Differential Privacy', 'Secure Multi-party Computation', 'Data Tokenization'],
+                    ],
+                ],
+                [
+                    'kode' => 'DATA-04',
+                    'nama' => 'Knowledge Graph Insights Platform',
+                    'deskripsi' => 'Menghubungkan data relasional dan tak terstruktur dalam graph untuk rekomendasi dan reasoning.',
+                    'tujuan' => 'Memunculkan wawasan hubungan yang tidak terlihat di data tradisional.',
+                    'tipe' => 'Knowledge Graph & Semantic Layer',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Graph rekomendasi riset kampus, Hubungan pemasok dalam rantai pasok',
+                    'tags' => [
+                        'teknologi' => ['Neo4j', 'RDF4J', 'Graph Data Science'],
+                        'metode' => ['Graph Embedding', 'Link Prediction', 'Semantic Reasoning'],
+                    ],
+                ],
+                [
+                    'kode' => 'DATA-05',
+                    'nama' => 'Synthetic Data Generator untuk Pengujian',
+                    'deskripsi' => 'Membuat data tiruan berkualitas tinggi untuk menguji sistem tanpa mengekspos data asli.',
+                    'tujuan' => 'Mempercepat pengujian sambil menjaga kepatuhan privasi.',
+                    'tipe' => 'Synthetic Data Factory',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Dataset tiruan untuk pengujian core banking, Data latihan untuk AI layanan kesehatan',
+                    'tags' => [
+                        'teknologi' => ['SDV', 'CTGAN', 'Faker'],
+                        'metode' => ['Privacy Evaluation', 'Statistical Matching', 'Data Masking'],
+                    ],
+                ],
+            ],
+            'CITRA' => [
+                [
+                    'kode' => 'CITRA-01',
+                    'nama' => 'Edge Vision untuk Smart City',
+                    'deskripsi' => 'Deploy model deteksi objek ringan di kamera jalan untuk mendukung kebijakan lalu lintas adaptif.',
+                    'tujuan' => 'Mengurangi kemacetan dan pelanggaran jalan secara real-time.',
+                    'tipe' => 'Edge Vision Analytics Stack',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Deteksi kendaraan ilegal di jalur busway, Penghitungan volume kendaraan di simpang padat',
+                    'tags' => [
+                        'teknologi' => ['NVIDIA Jetson', 'TensorRT', 'YOLOv8'],
+                        'metode' => ['Model Pruning', 'Edge Deployment', 'Object Tracking'],
+                    ],
+                ],
+                [
+                    'kode' => 'CITRA-02',
+                    'nama' => 'Vision Transformer untuk Triage Medis',
+                    'deskripsi' => 'Memanfaatkan ViT & segmentasi untuk memprioritaskan kasus medis dari citra radiologi.',
+                    'tujuan' => 'Membantu dokter menentukan kasus kritis lebih cepat.',
+                    'tipe' => 'Medical Imaging Decision Support',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'Seleksi kasus CT-stroke otomatis, Deteksi nodule paru menggunakan Swin Transformer',
+                    'tags' => [
+                        'teknologi' => ['Vision Transformer', 'MONAI', 'DICOM'],
+                        'metode' => ['Semantic Segmentation', 'Grad-CAM', 'Federated Learning'],
+                    ],
+                ],
+                [
+                    'kode' => 'CITRA-03',
+                    'nama' => '3D Reconstruction dengan Neural Radiance Field',
+                    'deskripsi' => 'Menghasilkan replika 3D realistis dari foto 2D menggunakan NeRF untuk keperluan industri kreatif.',
+                    'tujuan' => 'Mempercepat produksi aset 3D tanpa studio mahal.',
+                    'tipe' => 'NeRF Content Lab',
+                    'target' => 'CREATOR',
+                    'level' => 3,
+                    'studi' => 'Virtual tour cagar budaya, Visualisasi properti interaktif',
+                    'tags' => [
+                        'teknologi' => ['PyTorch3D', 'Instant-NGP', 'Blender'],
+                        'metode' => ['Neural Radiance Field', 'Pose Estimation', 'Volumetric Rendering'],
+                    ],
+                ],
+                [
+                    'kode' => 'CITRA-04',
+                    'nama' => 'Multimodal Citra-Teks Retrieval',
+                    'deskripsi' => 'Menggabungkan embedding gambar dan teks (CLIP) untuk pencarian aset media yang akurat.',
+                    'tujuan' => 'Memudahkan kurator konten menemukan materi sesuai narasi.',
+                    'tipe' => 'Multimodal Asset Search Engine',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Pencarian arsip media penyiaran, Sistem rekomendasi moodboard desainer',
+                    'tags' => [
+                        'teknologi' => ['CLIP', 'Milvus', 'OpenSearch'],
+                        'metode' => ['Contrastive Learning', 'Cross-modal Retrieval', 'Embedding Indexing'],
+                    ],
+                ],
+                [
+                    'kode' => 'CITRA-05',
+                    'nama' => 'Drone Crop Health Computer Vision',
+                    'deskripsi' => 'Pipeline analisis citra udara untuk mendeteksi stress tanaman dan rekomendasi tindakan.',
+                    'tujuan' => 'Meningkatkan produktivitas pertanian presisi.',
+                    'tipe' => 'Agri-vision Decision Platform',
+                    'target' => 'ARCHITECT',
+                    'level' => 2,
+                    'studi' => 'Deteksi penyakit padi dari drone NDVI, Monitoring irigasi kebun sawit',
+                    'tags' => [
+                        'teknologi' => ['OpenCV', 'QGIS', 'DroneDeploy'],
+                        'metode' => ['NDVI Analysis', 'Image Segmentation', 'Edge-post Processing'],
+                    ],
+                ],
+            ],
+            'NLP' => [
+                [
+                    'kode' => 'NLP-01',
+                    'nama' => 'Retrieval-Augmented Chatbot Kampus',
+                    'deskripsi' => 'Membangun chatbot akademik yang menggabungkan dokumen kampus dan LLM untuk menjawab pertanyaan mahasiswa.',
+                    'tujuan' => 'Memberikan layanan informasi 24/7 tanpa overloading staf.',
+                    'tipe' => 'Campus RAG Assistant',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Asisten kurikulum multi bahasa, FAQ beasiswa otomatis',
+                    'tags' => [
+                        'teknologi' => ['LangChain', 'HuggingFace Transformers', 'Pinecone'],
+                        'metode' => ['RAG', 'Prompt Guardrails', 'Conversation Memory'],
+                    ],
+                ],
+                [
+                    'kode' => 'NLP-02',
+                    'nama' => 'Multilingual Summarization LLM',
+                    'deskripsi' => 'Mengadaptasi model ringkasan berita multi-bahasa Asia Tenggara dengan fine-tuning instruktional.',
+                    'tujuan' => 'Menyediakan ringkasan cepat lintas bahasa untuk pembuat kebijakan.',
+                    'tipe' => 'Multilingual Summarization Service',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'Ringkasan laporan pemerintah, Digest berita maritim bilingual',
+                    'tags' => [
+                        'teknologi' => ['mT5', 'LoRA', 'SentencePiece'],
+                        'metode' => ['Instruction Tuning', 'Evaluation with BLEURT', 'Knowledge Distillation'],
+                    ],
+                ],
+                [
+                    'kode' => 'NLP-03',
+                    'nama' => 'Bias & Toxicity Audit Toolkit',
+                    'deskripsi' => 'Framework untuk mengukur bias, toksisitas, dan fairness pada model bahasa lokal.',
+                    'tujuan' => 'Memastikan penerapan AI bahasa yang etis.',
+                    'tipe' => 'Responsible NLP Testing Suite',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Audit chatbot layanan publik, Evaluasi bias gender dalam summarizer',
+                    'tags' => [
+                        'teknologi' => ['Perspective API', 'HolisticBias', 'HateCheck'],
+                        'metode' => ['Bias Benchmarking', 'Counterfactual Evaluation', 'Safety Scoring'],
+                    ],
+                ],
+                [
+                    'kode' => 'NLP-04',
+                    'nama' => 'Speech-to-Action Assistive Agent',
+                    'deskripsi' => 'Asisten suara untuk disabilitas yang menerjemahkan perintah menjadi aksi aplikasi desktop/web.',
+                    'tujuan' => 'Meningkatkan aksesibilitas pengguna dengan keterbatasan motorik.',
+                    'tipe' => 'Assistive Voice Agent',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Kontrol sistem akademik dengan bahasa Indonesia, Macro otomatis untuk pekerja remote',
+                    'tags' => [
+                        'teknologi' => ['Whisper', 'Rasa', 'Electron'],
+                        'metode' => ['Intent Detection', 'Command Mapping', 'Few-shot Adaptation'],
+                    ],
+                ],
+                [
+                    'kode' => 'NLP-05',
+                    'nama' => 'Low-resource Language Corpus Builder',
+                    'deskripsi' => 'Membuat pipeline crawling, normalisasi, dan anotasi semi otomatis untuk bahasa daerah.',
+                    'tujuan' => 'Memperluas ketersediaan dataset NLP bahasa lokal.',
+                    'tipe' => 'Corpus Engineering Platform',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Korpus bahasa Aceh untuk summarization, Dataset chatbot Bali',
+                    'tags' => [
+                        'teknologi' => ['ElasticSearch', 'spaCy', 'Prodigy'],
+                        'metode' => ['Active Learning', 'Data Valuation', 'Tokenizer Customization'],
+                    ],
+                ],
+            ],
+            'HCI' => [
+                [
+                    'kode' => 'HCI-01',
+                    'nama' => 'Accessibility Computing Lab',
+                    'deskripsi' => 'Mengevaluasi dan merancang ulang produk digital agar memenuhi WCAG 2.2 dengan partisipasi pengguna disabilitas.',
+                    'tujuan' => 'Menghadirkan pengalaman setara untuk semua pengguna.',
+                    'tipe' => 'Inclusive Design Toolkit',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Audit aplikasi pemerintahan, Redesign modul e-learning untuk low-vision',
+                    'tags' => [
+                        'teknologi' => ['Figma', 'Axe-core', 'Screen Reader Suite'],
+                        'metode' => ['Inclusive Design', 'WCAG Testing', 'Participatory Design'],
+                    ],
+                ],
+                [
+                    'kode' => 'HCI-02',
+                    'nama' => 'Neuroadaptive UI Experiment',
+                    'deskripsi' => 'Menggunakan sensor biometrik & EEG ringan untuk menyesuaikan UI sesuai beban kognitif.',
+                    'tujuan' => 'Mengurangi kelelahan digital dengan UI adaptif.',
+                    'tipe' => 'Neuroadaptive UX Platform',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Dashboard trading adaptif, Sistem latihan VR anti dizziness',
+                    'tags' => [
+                        'teknologi' => ['Muse EEG', 'Unity', 'Python'],
+                        'metode' => ['Affective Computing', 'Adaptive UI', 'Bio-signal Processing'],
+                    ],
+                ],
+                [
+                    'kode' => 'HCI-03',
+                    'nama' => 'VR/AR Co-design Workspace',
+                    'deskripsi' => 'Kolaborasi realtime antar desainer di ruang XR untuk membuat prototype produk.',
+                    'tujuan' => 'Mempercepat proses design sprint jarak jauh.',
+                    'tipe' => 'Immersive Collaboration Studio',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Workshop desain furnitur VR, Perancangan UI mobil otonom secara kolaboratif',
+                    'tags' => [
+                        'teknologi' => ['Unity', 'WebXR', 'Three.js'],
+                        'metode' => ['Co-design', 'Immersive Prototyping', 'Spatial UX'],
+                    ],
+                ],
+                [
+                    'kode' => 'HCI-04',
+                    'nama' => 'Conversational UX Analytics',
+                    'deskripsi' => 'Menganalisis log chatbot/voice bot untuk meningkatkan empati dan efektivitas dialog.',
+                    'tujuan' => 'Mengoptimalkan perjalanan percakapan pengguna.',
+                    'tipe' => 'Conversation Intelligence Dashboard',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Evaluasi voice bot layanan publik, Analitik tonasi customer support AI',
+                    'tags' => [
+                        'teknologi' => ['Elastic Stack', 'PowerBI', 'Dialogflow'],
+                        'metode' => ['Conversation Mining', 'Emotion Analysis', 'Journey Mapping'],
+                    ],
+                ],
+                [
+                    'kode' => 'HCI-05',
+                    'nama' => 'Emotion-aware Learning Dashboard',
+                    'deskripsi' => 'Menggabungkan data kamera & interaksi untuk menyesuaikan materi pembelajaran adaptif.',
+                    'tujuan' => 'Mengurangi kebosanan belajar daring.',
+                    'tipe' => 'Adaptive Learning Control Center',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Kelas hybrid dengan deteksi emosi, Tutor digital untuk anak berkebutuhan khusus',
+                    'tags' => [
+                        'teknologi' => ['TensorFlow', 'LiveKit', 'Supabase'],
+                        'metode' => ['Affective UX', 'Adaptive Content', 'Learning Analytics'],
+                    ],
+                ],
+            ],
+            'GRAF' => [
+                [
+                    'kode' => 'GRAF-01',
+                    'nama' => 'Digital Twin Visualization Platform',
+                    'deskripsi' => 'Membuat visualisasi interaktif untuk digital twin pabrik atau gedung menggunakan data IoT langsung.',
+                    'tujuan' => 'Mempercepat pengambilan keputusan melalui simulasi 3D real-time.',
+                    'tipe' => 'Digital Twin Visualization Suite',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Twin smart campus, Monitoring energi PLTS industri',
+                    'tags' => [
+                        'teknologi' => ['Unity', 'Three.js', 'Cesium'],
+                        'metode' => ['Realtime Rendering', 'Data-driven Animation', 'Scenario Simulation'],
+                    ],
+                ],
+                [
+                    'kode' => 'GRAF-02',
+                    'nama' => 'XR Training Simulator untuk Industri',
+                    'deskripsi' => 'Membuat pelatihan VR/AR dengan scenario branch untuk keselamatan kerja.',
+                    'tujuan' => 'Mengurangi kecelakaan kerja melalui latihan imersif.',
+                    'tipe' => 'XR Safety Training Platform',
+                    'target' => 'CREATOR',
+                    'level' => 3,
+                    'studi' => 'Pelatihan tanggap darurat kilang, Simulasi prosedur operasi alat berat',
+                    'tags' => [
+                        'teknologi' => ['Unreal Engine', 'Quest 3', 'OpenXR'],
+                        'metode' => ['Scenario-based Learning', 'Motion Capture', 'Haptics Integration'],
+                    ],
+                ],
+                [
+                    'kode' => 'GRAF-03',
+                    'nama' => 'Procedural Content Generation Studio',
+                    'deskripsi' => 'Toolkit untuk membuat dunia atau level game secara otomatis menggunakan rule dan AI.',
+                    'tujuan' => 'Menghemat waktu produksi untuk game indie dan simulasi.',
+                    'tipe' => 'Procedural Generation Toolkit',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Level game edukasi yang adaptif, Generasi kota virtual untuk film',
+                    'tags' => [
+                        'teknologi' => ['Godot', 'Blender Geometry Nodes', 'Python'],
+                        'metode' => ['Procedural Generation', 'L-system', 'Genetic Algorithm'],
+                    ],
+                ],
+                [
+                    'kode' => 'GRAF-04',
+                    'nama' => 'Immersive Storytelling Platform',
+                    'deskripsi' => 'Menggabungkan suara spatial, interaksi gesture, serta narasi non-linear untuk museum digital.',
+                    'tujuan' => 'Menghadirkan pengalaman cerita interaktif tingkat lanjut.',
+                    'tipe' => 'Immersive Narrative Engine',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Pameran sejarah interaktif, Storytelling wisata metaverse',
+                    'tags' => [
+                        'teknologi' => ['WebXR', 'A-Frame', 'FMOD'],
+                        'metode' => ['Non-linear Narrative', 'Spatial Audio', 'Experience Mapping'],
+                    ],
+                ],
+                [
+                    'kode' => 'GRAF-05',
+                    'nama' => 'Volumetric Video Pipeline',
+                    'deskripsi' => 'Pipeline produksi video volumetrik untuk konser atau olahraga agar penonton dapat berpindah sudut pandang.',
+                    'tujuan' => 'Menciptakan pengalaman hiburan baru di XR.',
+                    'tipe' => 'Volumetric Capture & Playback System',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Siara konser XR, Analitik gerakan atlet dari volumetric video',
+                    'tags' => [
+                        'teknologi' => ['Azure Kinect', 'DepthKit', 'Unreal'],
+                        'metode' => ['Point Cloud Processing', 'Compression Pipeline', 'XR Streaming'],
+                    ],
+                ],
+            ],
+            'JAR' => [
+                [
+                    'kode' => 'JAR-01',
+                    'nama' => 'Zero Trust Network Automation',
+                    'deskripsi' => 'Merancang kebijakan akses mikro berbasis identitas perangkat dan perilaku pengguna.',
+                    'tujuan' => 'Mengganti perimeter security klasik dengan Zero Trust modern.',
+                    'tipe' => 'Zero Trust Policy Engine',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Implementasi kampus hybrid work, Segmentasi microservice per tenant',
+                    'tags' => [
+                        'teknologi' => ['Istio', 'Zitadel', 'Calico'],
+                        'metode' => ['Zero Trust', 'Micro Segmentation', 'Policy Automation'],
+                    ],
+                ],
+                [
+                    'kode' => 'JAR-02',
+                    'nama' => 'AI-driven Threat Hunting & SOC Co-pilot',
+                    'deskripsi' => 'Memakai ML dan rule matriks MITRE ATT&CK untuk memprioritaskan alert dan saran respon.',
+                    'tujuan' => 'Mengurangi noise SOC dan waktu respon insiden.',
+                    'tipe' => 'Threat Hunting Intelligence Platform',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'SOC kampus modern, Monitoring BUMN energi',
+                    'tags' => [
+                        'teknologi' => ['Elastic SIEM', 'MISP', 'Python'],
+                        'metode' => ['ATT&CK Mapping', 'Behavior Analytics', 'Intelligent Triage'],
+                    ],
+                ],
+                [
+                    'kode' => 'JAR-03',
+                    'nama' => 'Quantum-safe VPN Toolkit',
+                    'deskripsi' => 'Menyiapkan VPN dan channel komunikasi yang siap menghadapi ancaman komputasi kuantum.',
+                    'tujuan' => 'Melindungi data jangka panjang dari serangan harvest-now-decrypt-later.',
+                    'tipe' => 'Post-Quantum Secure Communication',
+                    'target' => 'ARCHITECT',
+                    'level' => 2,
+                    'studi' => 'VPN pemerintah dengan algoritma CRYSTALS-Kyber, Channel rahasia penelitian',
+                    'tags' => [
+                        'teknologi' => ['OpenVPN', 'CRYSTALS-Kyber', 'WireGuard'],
+                        'metode' => ['Post-Quantum Cryptography', 'Hybrid Key Exchange', 'Forward Secrecy'],
+                    ],
+                ],
+                [
+                    'kode' => 'JAR-04',
+                    'nama' => 'OT/ICS Security Digital Twin',
+                    'deskripsi' => 'Model digital untuk simulasi serangan pada infrastruktur industri guna menguji kontrol keamanan.',
+                    'tujuan' => 'Memberikan latihan aman bagi operator OT.',
+                    'tipe' => 'ICS Cyber Range & Digital Twin',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Simulasi serangan PLC pabrik semen, Latihan pemadaman listrik',
+                    'tags' => [
+                        'teknologi' => ['S7comm', 'OPC UA', 'Docker'],
+                        'metode' => ['Cyber Range', 'Attack Simulation', 'Anomaly Detection'],
+                    ],
+                ],
+                [
+                    'kode' => 'JAR-05',
+                    'nama' => 'Secure SASE untuk Kampus Hybrid',
+                    'deskripsi' => 'Menggabungkan SD-WAN, CASB, dan ZTNA untuk mendukung kuliah campuran on/off-campus.',
+                    'tujuan' => 'Menyediakan akses aman dari mana saja.',
+                    'tipe' => 'SASE Reference Implementation',
+                    'target' => 'GENERAL',
+                    'level' => 2,
+                    'studi' => 'Akses aman laboratorium virtual, Remote exam proctoring',
+                    'tags' => [
+                        'teknologi' => ['Prisma Access', 'OpenZiti', 'WireGuard'],
+                        'metode' => ['SASE', 'ZTNA', 'SD-WAN Optimization'],
+                    ],
+                ],
+            ],
+            'IOT' => [
+                [
+                    'kode' => 'IOT-01',
+                    'nama' => 'Edge AI Smart Farming LoRa Mesh',
+                    'deskripsi' => 'Jaringan sensor pertanian dengan LoRa mesh dan model AI lokal untuk rekomendasi penyiraman.',
+                    'tujuan' => 'Menghemat air & pupuk di lahan luas.',
+                    'tipe' => 'Smart Farming Edge Network',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Perkebunan tebu presisi, Monitoring kakao di daerah terpencil',
+                    'tags' => [
+                        'teknologi' => ['LoRaWAN', 'ESP32', 'Edge Impulse'],
+                        'metode' => ['Edge AI', 'Soil Moisture Modeling', 'Federated Update'],
+                    ],
+                ],
+                [
+                    'kode' => 'IOT-02',
+                    'nama' => 'Blockchain-backed Device Identity',
+                    'deskripsi' => 'Sistem identitas perangkat IoT dan supply chain sensor berbasis blockchain untuk menghindari pemalsuan.',
+                    'tujuan' => 'Menjamin integritas data sensor kritis.',
+                    'tipe' => 'IoT Trust & Identity Platform',
+                    'target' => 'ANALIS',
+                    'level' => 3,
+                    'studi' => 'Pelacakan vaksin rantai dingin, Sertifikasi sensor industri',
+                    'tags' => [
+                        'teknologi' => ['Hyperledger Fabric', 'DID', 'Azure DPS'],
+                        'metode' => ['Decentralized Identity', 'Secure Provisioning', 'Attestation'],
+                    ],
+                ],
+                [
+                    'kode' => 'IOT-03',
+                    'nama' => 'Wearable Digital Health Twin',
+                    'deskripsi' => 'Menggabungkan data wearable dengan model twin kesehatan untuk memberikan insight personal.',
+                    'tujuan' => 'Membantu klinik memantau pasien kronis dari rumah.',
+                    'tipe' => 'Personal Digital Health Twin',
+                    'target' => 'CREATOR',
+                    'level' => 2,
+                    'studi' => 'Pemantauan pasca operasi jantung, Program kebugaran kampus',
+                    'tags' => [
+                        'teknologi' => ['WearOS', 'FHIR', 'TimeSeries DB'],
+                        'metode' => ['Digital Twin', 'Anomaly Scoring', 'Telehealth Workflow'],
+                    ],
+                ],
+                [
+                    'kode' => 'IOT-04',
+                    'nama' => 'Industrial IoT Predictive Maintenance Hub',
+                    'deskripsi' => 'Platform gateway industri dengan analitik vibrasi dan integrasi CMMS.',
+                    'tujuan' => 'Mengurangi downtime mesin manufaktur.',
+                    'tipe' => 'Predictive Maintenance Gateway',
+                    'target' => 'ARCHITECT',
+                    'level' => 3,
+                    'studi' => 'Monitoring turbin pabrik kimia, Sistem peringatan dini mesin tekstil',
+                    'tags' => [
+                        'teknologi' => ['AWS IoT Greengrass', 'InfluxDB', 'Node-RED'],
+                        'metode' => ['Condition Monitoring', 'AutoML Regression', 'Root Cause Analysis'],
+                    ],
+                ],
+                [
+                    'kode' => 'IOT-05',
+                    'nama' => 'Smart Campus Energy Orchestrator',
+                    'deskripsi' => 'Mengontrol lampu, AC, dan panel surya kampus melalui platform IoT dengan algoritma penghematan energi.',
+                    'tujuan' => 'Menurunkan biaya listrik kampus hingga 20%.',
+                    'tipe' => 'Energy Orchestration & Control System',
+                    'target' => 'ANALIS',
+                    'level' => 2,
+                    'studi' => 'Optimasi pendingin auditorium, Penjadwalan charging kendaraan listrik kampus',
+                    'tags' => [
+                        'teknologi' => ['Home Assistant', 'MQTT', 'Azure IoT Hub'],
+                        'metode' => ['Demand Response', 'Energy Forecasting', 'Rule-based Automation'],
+                    ],
+                ],
+            ],
+        ];
     }
 }
+
+

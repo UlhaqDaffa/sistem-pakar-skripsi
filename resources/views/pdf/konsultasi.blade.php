@@ -138,6 +138,22 @@
         </div>
     </div>
 
+    @php
+        $teknologiTags = $consultation->areaRisetFinal?->tags?->where('tipe', 'TEKNOLOGI')->pluck('nama_tag')->toArray() ?? [];
+        $metodeTags = $consultation->areaRisetFinal?->tags?->where('tipe', 'METODE')->pluck('nama_tag')->toArray() ?? [];
+        $levelMap = [
+            1 => 'Level 1 • Konseptual / Rendah',
+            2 => 'Level 2 • Pengembangan / Menengah',
+            3 => 'Level 3 • Deep Tech / Tinggi',
+        ];
+        $targetMap = [
+            'CREATOR' => 'Creator • Eksperimen & Implementasi',
+            'ANALIS' => 'Analis • Insight & Validasi',
+            'ARCHITECT' => 'Architect • Sistem Kompleks',
+            'GENERAL' => 'General • Fleksibel',
+        ];
+    @endphp
+
     <!-- Hasil Rekomendasi -->
     @if($consultation->areaRisetFinal)
         <div class="section">
@@ -145,6 +161,13 @@
             <div class="result-box">
                 <h3>{{ $consultation->areaRisetFinal->nama_area }}</h3>
                 <p>{{ $consultation->areaRisetFinal->deskripsi }}</p>
+                <p style="margin-top: 10px;">
+                    <strong>Target Arketipe:</strong> {{ $targetMap[$consultation->areaRisetFinal->target_arketipe] ?? '-' }}<br>
+                    <strong>Level Kesulitan:</strong> {{ $levelMap[$consultation->areaRisetFinal->level_kesulitan] ?? '-' }}<br>
+                    @if($consultation->areaRisetFinal->tipe_sistem)
+                        <strong>Tipe Sistem:</strong> {{ $consultation->areaRisetFinal->tipe_sistem }}
+                    @endif
+                </p>
             </div>
         </div>
     @endif
@@ -214,9 +237,25 @@
             <div style="margin-bottom: 20px;">
                 <h3 style="color: #1e40af; font-size: 14px; margin-bottom: 10px;">3. Teknologi & Metode Kunci</h3>
                 <p><strong>Teknologi Utama:</strong></p>
-                <p>{{ $consultation->areaRisetFinal->kata_kunci_teknologi }}</p>
+                @if(empty($teknologiTags))
+                    <p>-</p>
+                @else
+                    <ul style="margin-left: 16px;">
+                        @foreach($teknologiTags as $tag)
+                            <li>{{ $tag }}</li>
+                        @endforeach
+                    </ul>
+                @endif
                 <p style="margin-top: 10px;"><strong>Metode Kunci:</strong></p>
-                <p>{{ $consultation->areaRisetFinal->kata_kunci_metode }}</p>
+                @if(empty($metodeTags))
+                    <p>-</p>
+                @else
+                    <ul style="margin-left: 16px;">
+                        @foreach($metodeTags as $tag)
+                            <li>{{ $tag }}</li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
 
             <div style="margin-bottom: 20px;">

@@ -15,6 +15,7 @@ class TitleFormulationService
      */
     public function generateTitles(AreaRiset $areaRiset): array
     {
+        $areaRiset->loadMissing('tags');
         // Ambil semua pola judul yang terhubung dengan area riset
         $polaJuduls = $areaRiset->polaJuduls;
 
@@ -22,8 +23,7 @@ class TitleFormulationService
             return [];
         }
 
-        // Parse kata_kunci_metode menjadi array
-        $metodeArray = $this->parseKataKunciMetode($areaRiset->kata_kunci_metode);
+        $metodeArray = $this->extractMetodeTags($areaRiset);
 
         $titles = [];
 
@@ -39,25 +39,14 @@ class TitleFormulationService
         return $titles;
     }
 
-    /**
-     * Parse kata_kunci_metode string menjadi array
-     *
-     * @param string|null $kataKunciMetode
-     * @return array
-     */
-    private function parseKataKunciMetode(?string $kataKunciMetode): array
+    private function extractMetodeTags(AreaRiset $areaRiset): array
     {
-        if (empty($kataKunciMetode)) {
-            return [];
-        }
-
-        // pecah dengan koma, trim setiap item, filter yang kosong
-        $metode = array_filter(
-            array_map('trim', explode(',', $kataKunciMetode)),
-            fn($item) => !empty($item)
-        );
-
-        return array_values($metode);
+        return $areaRiset->tags
+            ->where('tipe', 'METODE')
+            ->pluck('nama_tag')
+            ->filter()
+            ->values()
+            ->all();
     }
 
     /**

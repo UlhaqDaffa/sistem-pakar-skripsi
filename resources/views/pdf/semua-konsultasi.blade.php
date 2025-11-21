@@ -119,6 +119,20 @@
         <p>Total Konsultasi: {{ $consultations->count() }}</p>
     </div>
 
+    @php
+        $levelMap = [
+            1 => 'Lv1 • Konseptual',
+            2 => 'Lv2 • Pengembangan',
+            3 => 'Lv3 • Deep Tech',
+        ];
+        $targetMap = [
+            'CREATOR' => 'Creator',
+            'ANALIS' => 'Analis',
+            'ARCHITECT' => 'Architect',
+            'GENERAL' => 'General',
+        ];
+    @endphp
+
     @foreach($consultations as $index => $consultation)
         <div class="consultation-section {{ $index > 0 ? 'page-break' : '' }}">
             <div class="consultation-header">
@@ -140,6 +154,10 @@
                 <div class="result-box">
                     <h3>Rekomendasi Final: {{ $consultation->areaRisetFinal->nama_area }}</h3>
                     <p style="font-size: 10px;">{{ \Illuminate\Support\Str::limit($consultation->areaRisetFinal->deskripsi, 200) }}</p>
+                    <p style="font-size: 10px; margin-top: 6px;">
+                        Target: {{ $targetMap[$consultation->areaRisetFinal->target_arketipe] ?? '-' }} |
+                        Level: {{ $levelMap[$consultation->areaRisetFinal->level_kesulitan] ?? '-' }}
+                    </p>
                 </div>
             @endif
 

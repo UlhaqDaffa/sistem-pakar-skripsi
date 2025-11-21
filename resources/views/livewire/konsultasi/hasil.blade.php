@@ -10,9 +10,17 @@ new class extends Component {
     public function mount($konsultasi = null): void
     {
         if ($konsultasi instanceof Konsultasi) {
-            $this->konsultasi = $konsultasi;
+            $this->konsultasi = $konsultasi->loadMissing([
+                'areaRisetFinal.tags',
+                'hasilMinat.tags',
+                'hasilAkademik.tags',
+            ]);
         } elseif (is_numeric($konsultasi)) {
-            $this->konsultasi = Konsultasi::with(['areaRisetFinal', 'hasilMinat', 'hasilAkademik'])->find($konsultasi);
+            $this->konsultasi = Konsultasi::with([
+                'areaRisetFinal.tags',
+                'hasilMinat.tags',
+                'hasilAkademik.tags',
+            ])->find($konsultasi);
         }
 
         if ($this->konsultasi && $this->konsultasi->areaRisetFinal) {
@@ -25,7 +33,13 @@ new class extends Component {
         if (!$this->areaRisetFinal) {
             return [];
         }
-        return array_map('trim', explode(',', $this->areaRisetFinal->kata_kunci_teknologi));
+
+        return $this->areaRisetFinal->tags
+            ->where('tipe', 'TEKNOLOGI')
+            ->pluck('nama_tag')
+            ->filter()
+            ->values()
+            ->all();
     }
 
     public function getMetodeArray(): array
@@ -33,7 +47,13 @@ new class extends Component {
         if (!$this->areaRisetFinal) {
             return [];
         }
-        return array_map('trim', explode(',', $this->areaRisetFinal->kata_kunci_metode));
+
+        return $this->areaRisetFinal->tags
+            ->where('tipe', 'METODE')
+            ->pluck('nama_tag')
+            ->filter()
+            ->values()
+            ->all();
     }
 
     public function getStudiKasusArray(): array
@@ -56,6 +76,35 @@ new class extends Component {
 
         // Jika tidak ada judul dari service, return array kosong
         return $judul ?: [];
+    }
+
+    public function getLevelLabel(): string
+    {
+        if (!$this->areaRisetFinal) {
+            return '-';
+        }
+
+        $map = [
+            1 => 'Level 1 • Konseptual / Rendah',
+            2 => 'Level 2 • Pengembangan / Menengah',
+            3 => 'Level 3 • Deep Tech / Tinggi',
+        ];
+
+        return $map[$this->areaRisetFinal->level_kesulitan] ?? 'Level tidak diketahui';
+    }
+
+    public function getTargetArketipeLabel(): string
+    {
+        if (!$this->areaRisetFinal) {
+            return '-';
+        }
+
+        return match ($this->areaRisetFinal->target_arketipe) {
+            'CREATOR' => 'Creator • Eksperimen & Implementasi UI/Produk',
+            'ANALIS' => 'Analis • Data, insight, & validasi',
+            'ARCHITECT' => 'Architect • Sistem besar & integrasi',
+            default => 'General • Fleksibel lintas arketipe',
+        };
     }
 }; ?>
 
@@ -96,6 +145,19 @@ new class extends Component {
                     <p class="text-gray-800 dark:text-neutral-200 leading-relaxed">
                         {{ $areaRisetFinal->deskripsi }}
                     </p>
+                    <div class="flex flex-wrap items-center gap-3 mt-4 text-sm">
+                        <span class="px-3 py-1 rounded-full bg-white/60 dark:bg-neutral-900/30 text-gray-800 dark:text-neutral-100 border border-primary/30">
+                            {{ $this->getTargetArketipeLabel() }}
+                        </span>
+                        <span class="px-3 py-1 rounded-full bg-white/60 dark:bg-neutral-900/30 text-gray-800 dark:text-neutral-100 border border-emerald-300/50">
+                            {{ $this->getLevelLabel() }}
+                        </span>
+                        @if($areaRisetFinal->tipe_sistem)
+                            <span class="px-3 py-1 rounded-full bg-white/60 dark:bg-neutral-900/30 text-gray-800 dark:text-neutral-100 border border-indigo-300/50">
+                                {{ $areaRisetFinal->tipe_sistem }}
+                            </span>
+                        @endif
+                    </div>
                 </div>
 
                 <!-- 2. Deskripsi -->
@@ -114,35 +176,35 @@ new class extends Component {
                         <!-- Teknologi Utama -->
                         <div>
                             <h3 class="text-lg font-medium text-gray-800 dark:text-neutral-200 mb-3">Teknologi Utama:</h3>
-                            <ul class="space-y-2">
-                                @foreach($this->getTeknologiArray() as $teknologi)
-                                    @if(!empty(trim($teknologi)))
-                                        <li class="flex items-start">
-                                            <svg class="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            <span class="text-gray-700 dark:text-neutral-300">{{ $teknologi }}</span>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
+                            @php($teknologiTags = $this->getTeknologiArray())
+                            @if(empty($teknologiTags))
+                                <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada tag teknologi yang ditautkan.</p>
+                            @else
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($teknologiTags as $teknologi)
+                                        <span class="px-3 py-1 text-sm rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-200">
+                                            {{ $teknologi }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Metode Kunci -->
                         <div>
                             <h3 class="text-lg font-medium text-gray-800 dark:text-neutral-200 mb-3">Metode Kunci:</h3>
-                            <ul class="space-y-2">
-                                @foreach($this->getMetodeArray() as $metode)
-                                    @if(!empty(trim($metode)))
-                                        <li class="flex items-start">
-                                            <svg class="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            <span class="text-gray-700 dark:text-neutral-300">{{ $metode }}</span>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
+                            @php($metodeTags = $this->getMetodeArray())
+                            @if(empty($metodeTags))
+                                <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada tag metode yang ditautkan.</p>
+                            @else
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($metodeTags as $metode)
+                                        <span class="px-3 py-1 text-sm rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                                            {{ $metode }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -193,9 +255,12 @@ new class extends Component {
                     Kembali ke Dashboard
                 </x-button-primary-lg>
 
-                <x-button-secondary-lg>
+                <a
+                    href="{{ route('ekspor.pdf', ['konsultasi' => $konsultasi->id]) }}"
+                    class="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 font-semibold transition-colors duration-200"
+                >
                     Ekspor Hasil (PDF)
-                </x-button-secondary-lg>
+                </a>
 
                 <livewire:konsultasi.hasil-restart-modal/>
             </div>

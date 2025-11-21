@@ -12,10 +12,21 @@ class MinatStepHandler implements StepHandler
     {
         $minat = str_replace('MINAT_', '', $jawaban->kode_jawaban);
         $asesmenKode = 'ASESMEN_' . $minat . '_%';
-        $antrianAsesmen = Pertanyaan::where('kode_pertanyaan', 'like', $asesmenKode)
-            ->with('opsiJawaban', 'kategori')
-            ->orderBy('id')
-            ->get()->all();
+
+        $discriminator = Pertanyaan::where('kode_pertanyaan', 'DISK_' . $minat . '_01')
+            ->with(['opsiJawabanTemplate.opsiJawabanTemplateItems', 'opsiJawaban', 'kategori'])
+            ->first();
+
+        $asesmenPertanyaan = Pertanyaan::where('kode_pertanyaan', 'like', $asesmenKode)
+            ->with(['opsiJawabanTemplate.opsiJawabanTemplateItems', 'opsiJawaban', 'kategori'])
+            ->orderBy('kode_pertanyaan')
+            ->get()
+            ->all();
+
+        $antrianAsesmen = array_values(array_filter(array_merge(
+            $discriminator ? [$discriminator] : [],
+            $asesmenPertanyaan
+        )));
 
         $nextQuestion = $antrianAsesmen[0] ?? null;
 
@@ -24,7 +35,7 @@ class MinatStepHandler implements StepHandler
             'minat' => $minat,
             'antrianAsesmen' => $antrianAsesmen,
             'asesmenIndex' => 0,
-            'progress' => 66,
+            'progress' => 60,
         ];
     }
 }

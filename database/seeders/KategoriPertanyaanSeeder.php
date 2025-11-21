@@ -29,6 +29,13 @@ class KategoriPertanyaanSeeder extends Seeder
         ]);
 
         KategoriPertanyaan::create([
+            'kode_kategori' => 'DISK',
+            'nama_kategori' => 'Pertanyaan Pembeda',
+            'tipe' => 'discriminator',
+            'deskripsi' => 'Pertanyaan untuk membedakan kecenderungan arketipe pada minat tertentu.',
+        ]);
+
+        KategoriPertanyaan::create([
             'kode_kategori' => 'ASESMEN',
             'nama_kategori' => 'Pertanyaan Asesmen',
             'tipe' => 'asesmen',

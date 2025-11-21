@@ -61,13 +61,17 @@ class KonsultasiService
         // Ambil OpsiJawaban untuk handler
         $opsiJawaban = OpsiJawaban::find($opsiJawabanId);
 
-        JawabanKonsultasi::create([
+        $jawabanKonsultasi = JawabanKonsultasi::create([
             'konsultasi_id' => $konsultasi->id,
             'opsi_jawaban_id' => $opsiJawabanId,
         ]);
 
         $handler = $this->getHandlerForQuestion($currentQuestion);
-        return $handler->handle($konsultasi, $opsiJawaban, $currentState);
+        $result = $handler->handle($konsultasi, $opsiJawaban, $currentState);
+        $result['jawaban_konsultasi_id'] = $jawabanKonsultasi->id;
+        $result['pertanyaan_terjawab_id'] = $currentQuestion->id;
+
+        return $result;
     }
 
     /**
@@ -214,6 +218,7 @@ class KonsultasiService
             case 'MINAT':
                 return new MinatStepHandler();
             case 'ASESMEN':
+            case 'DISK':
                 return new AsesmenStepHandler();
             default:
                 throw new Exception("Handler tidak ditemukan untuk kategori: " . $kodeKategori);

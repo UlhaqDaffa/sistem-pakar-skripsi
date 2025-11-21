@@ -62,41 +62,40 @@ class PolaJudulSeeder extends Seeder
         ]);
 
         // Link pola judul ke area riset yang relevan
-        // Ambil beberapa area riset untuk contoh
-        $areaRisets = AreaRiset::all();
+        $areaRisets = AreaRiset::with('tags')->get();
 
         foreach ($areaRisets as $areaRiset) {
             // Setiap area riset mendapat beberapa pola judul
             // Pola 1 (Perbandingan) - untuk area yang punya minimal 2 metode
-            if (strpos($areaRiset->kata_kunci_metode, ',') !== false) {
-                $areaRiset->polaJuduls()->attach($pola1->id);
+            if ($areaRiset->tags->where('tipe', 'METODE')->count() >= 2) {
+                $areaRiset->polaJuduls()->syncWithoutDetaching($pola1->id);
             }
 
             // Pola 2 (Penerapan) - untuk semua area
-            $areaRiset->polaJuduls()->attach($pola2->id);
+            $areaRiset->polaJuduls()->syncWithoutDetaching($pola2->id);
 
             // Pola 3 (Pengembangan) - untuk area pengembangan
             if (in_array($areaRiset->kode_area, ['PENG-01', 'PENG-02', 'PENG-03', 'RPL-01', 'RPL-02', 'RPL-03'])) {
-                $areaRiset->polaJuduls()->attach($pola3->id);
+                $areaRiset->polaJuduls()->syncWithoutDetaching($pola3->id);
             }
 
             // Pola 4 (Optimasi) - untuk area AI dan optimasi
             if (in_array($areaRiset->kode_area, ['AI-04', 'JAR-03', 'IOT-03'])) {
-                $areaRiset->polaJuduls()->attach($pola4->id);
+                $areaRiset->polaJuduls()->syncWithoutDetaching($pola4->id);
             }
 
             // Pola 5 (Analisis) - untuk area analisis
             if (in_array($areaRiset->kode_area, ['DATA-01', 'DATA-02', 'DATA-03', 'CITRA-01', 'CITRA-02', 'CITRA-03'])) {
-                $areaRiset->polaJuduls()->attach($pola5->id);
+                $areaRiset->polaJuduls()->syncWithoutDetaching($pola5->id);
             }
 
             // Pola 6 (Hybrid) - untuk area yang bisa dikombinasikan
             if (in_array($areaRiset->kode_area, ['DATA-02', 'AI-01', 'AI-02'])) {
-                $areaRiset->polaJuduls()->attach($pola6->id);
+                $areaRiset->polaJuduls()->syncWithoutDetaching($pola6->id);
             }
 
             // Pola 7 (Evaluasi) - untuk semua area
-            $areaRiset->polaJuduls()->attach($pola7->id);
+            $areaRiset->polaJuduls()->syncWithoutDetaching($pola7->id);
         }
     }
 }

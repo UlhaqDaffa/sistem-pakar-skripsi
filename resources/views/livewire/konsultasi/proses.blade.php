@@ -2,6 +2,7 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\Computed;
+use App\Models\JawabanKonsultasi;
 use App\Models\Konsultasi;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawaban;
@@ -13,6 +14,7 @@ new class extends Component {
     public ?Pertanyaan $pertanyaanSekarang = null;
     public array $jawabanUser = [];
     public int $progress = 0;
+    public array $questionHistory = [];
 
     // State
     public ?string $archetype = null;
@@ -51,7 +53,8 @@ new class extends Component {
 
     public function pilihJawaban(int $opsiJawabanId): void
     {
-        // Coba cari sebagai template item dulu (untuk pertanyaan baru), lalu fallback ke OpsiJawaban (untuk data historis)
+        $stateSnapshot = $this->snapshotState();
+
         $opsiTerpilih = OpsiJawabanTemplateItem::find($opsiJawabanId);
         $teksJawaban = null;
 
@@ -82,12 +85,23 @@ new class extends Component {
         ];
 
         $newState = app(KonsultasiService::class)->processAnswer($this->konsultasi, $this->pertanyaanSekarang, $opsiJawabanId, $currentState);
+        $lastJawabanId = $newState['jawaban_konsultasi_id'] ?? null;
+        $lastPertanyaanId = $newState['pertanyaan_terjawab_id'] ?? null;
+        unset($newState['jawaban_konsultasi_id'], $newState['pertanyaan_terjawab_id']);
 
         // Update component state from the service's response
         foreach ($newState as $key => $value) {
             if (property_exists($this, $key)) {
                 $this->$key = $value;
             }
+        }
+
+        if ($lastJawabanId && $lastPertanyaanId) {
+            $this->questionHistory[] = [
+                'question_id' => $lastPertanyaanId,
+                'jawaban_id' => $lastJawabanId,
+                'snapshot' => $stateSnapshot,
+            ];
         }
 
         if (!$this->pertanyaanSekarang && !$this->showNilaiForm) {
@@ -135,6 +149,22 @@ new class extends Component {
         $this->redirect(route('konsultasi.starter'), navigate: true);
     }
 
+    public function goToPreviousQuestion(): void
+    {
+        $last = array_pop($this->questionHistory);
+
+        if (!$last) {
+            return;
+        }
+
+        if (!empty($last['jawaban_id'])) {
+            JawabanKonsultasi::where('id', $last['jawaban_id'])->delete();
+        }
+
+        array_pop($this->jawabanUser);
+        $this->restoreState($last['snapshot'] ?? []);
+    }
+
     #[Computed]
     public function tahapSekarang(): array
     {
@@ -171,6 +201,11 @@ new class extends Component {
             }
             $pertanyaan_ke = $this->asesmenIndex + 1;
             $total_pertanyaan = count($this->antrianAsesmen);
+        } elseif ($kategori->tipe === 'discriminator') {
+            $nama = 'Tahap 2B: Pertanyaan Pembeda';
+            $deskripsi = 'Menentukan kecocokan arketipe untuk minat pilihan Anda.';
+            $pertanyaan_ke = 1;
+            $total_pertanyaan = count($this->antrianAsesmen) ?: 1;
         }
 
         return [
@@ -179,6 +214,55 @@ new class extends Component {
             'pertanyaan_ke' => $pertanyaan_ke,
             'total_pertanyaan' => $total_pertanyaan,
         ];
+    }
+
+    private function snapshotState(): array
+    {
+        return [
+            'pertanyaan_id' => $this->pertanyaanSekarang?->id,
+            'archetype' => $this->archetype,
+            'minat' => $this->minat,
+            'antrian_ids' => array_map(function ($item) {
+                return $item instanceof Pertanyaan ? $item->id : null;
+            }, $this->antrianAsesmen),
+            'asesmen_index' => $this->asesmenIndex,
+            'progress' => $this->progress,
+            'show_nilai_form' => $this->showNilaiForm,
+        ];
+    }
+
+    private function restoreState(array $snapshot): void
+    {
+        $this->archetype = $snapshot['archetype'] ?? $this->archetype;
+        $this->minat = $snapshot['minat'] ?? $this->minat;
+        $this->asesmenIndex = $snapshot['asesmen_index'] ?? 0;
+        $this->progress = $snapshot['progress'] ?? $this->progress;
+        $this->showNilaiForm = $snapshot['show_nilai_form'] ?? false;
+        $this->antrianAsesmen = $this->hydratePertanyaanQueue($snapshot['antrian_ids'] ?? []);
+
+        if (!empty($snapshot['pertanyaan_id'])) {
+            $this->pertanyaanSekarang = Pertanyaan::with(['opsiJawabanTemplate.opsiJawabanTemplateItems', 'opsiJawaban', 'kategori'])
+                ->find($snapshot['pertanyaan_id']);
+        } else {
+            $this->pertanyaanSekarang = null;
+        }
+    }
+
+    private function hydratePertanyaanQueue(array $ids): array
+    {
+        $ids = array_filter($ids);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $pertanyaans = Pertanyaan::with(['opsiJawabanTemplate.opsiJawabanTemplateItems', 'opsiJawaban', 'kategori'])
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        return array_values(array_filter(array_map(function ($id) use ($pertanyaans) {
+            return $pertanyaans->get($id);
+        }, $ids)));
     }
 }; ?>
 
@@ -316,8 +400,16 @@ new class extends Component {
             </div>
         @endif
 
-        <!-- Footer Spacer -->
-        <div class="flex-shrink-0 mt-6 h-[38px]"></div>
+        <div class="flex-shrink-0 mt-6 flex items-center justify-between">
+            <button
+                wire:click="goToPreviousQuestion"
+                @disabled(empty($questionHistory))
+                class="px-4 py-2 text-sm font-semibold rounded-md text-primary border border-primary/40 hover:bg-primary/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+                Pertanyaan Sebelumnya
+            </button>
+            <div class="h-[38px]"></div>
+        </div>
     </div>
 
     <!-- Summary Card -->
