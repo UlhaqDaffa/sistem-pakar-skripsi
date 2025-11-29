@@ -34,10 +34,10 @@
                 </flux:navlist.group>
 
                 <!-- System -->
-                <flux:navlist.group :heading="__('System')" class="grid">
+                <!-- <flux:navlist.group :heading="__('System')" class="grid">
                     <flux:navlist.item class="mb-1" icon="clock" :href="route('admin.riwayat-konsultasi.index')" :current="request()->routeIs('admin.riwayat-konsultasi.*')" wire:navigate>{{ __('Riwayat Konsultasi') }}</flux:navlist.item>
                     <flux:navlist.item class="mb-1" icon="cpu-chip" :href="route('admin.training-model.index')" :current="request()->routeIs('admin.training-model.*')" wire:navigate>{{ __('Training Model') }}</flux:navlist.item>
-                </flux:navlist.group>
+                </flux:navlist.group> -->
             </flux:navlist>
 
 
