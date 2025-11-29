@@ -13,10 +13,30 @@
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Menu')" class="grid">
+                <!-- Dashboard -->
+                <flux:navlist.group :heading="__('Dashboard')" class="grid">
                     <flux:navlist.item class="mb-1" icon="home" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('admin.topik')" :current="request()->routeIs('admin.topik')" wire:navigate>{{ __('Topik Penelitian') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('admin.aturan')" :current="request()->routeIs('admin.aturan')" wire:navigate>{{ __('Aturan-Aturan') }}</flux:navlist.item>
+                </flux:navlist.group>
+
+                <!-- Master Data -->
+                <flux:navlist.group :heading="__('Master Data')" class="grid">
+                    <flux:navlist.item class="mb-1" icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="heart" :href="route('admin.minat.index')" :current="request()->routeIs('admin.minat.*')" wire:navigate>{{ __('Minat') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="map-pin" :href="route('admin.area-riset.index')" :current="request()->routeIs('admin.area-riset.*')" wire:navigate>{{ __('Area Riset') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="tag" :href="route('admin.tags.index')" :current="request()->routeIs('admin.tags.*')" wire:navigate>{{ __('Tags') }}</flux:navlist.item>
+                </flux:navlist.group>
+
+                <!-- Knowledge Base -->
+                <flux:navlist.group :heading="__('Knowledge Base')" class="grid">
+                    <flux:navlist.item class="mb-1" icon="question-mark-circle" :href="route('admin.pertanyaan.index')" :current="request()->routeIs('admin.pertanyaan.*')" wire:navigate>{{ __('Pertanyaan') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('admin.rules.index')" :current="request()->routeIs('admin.rules.*')" wire:navigate>{{ __('Rules') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="document-text" :href="route('admin.pola-judul.index')" :current="request()->routeIs('admin.pola-judul.*')" wire:navigate>{{ __('Pola Judul') }}</flux:navlist.item>
+                </flux:navlist.group>
+
+                <!-- System -->
+                <flux:navlist.group :heading="__('System')" class="grid">
+                    <flux:navlist.item class="mb-1" icon="clock" :href="route('admin.riwayat-konsultasi.index')" :current="request()->routeIs('admin.riwayat-konsultasi.*')" wire:navigate>{{ __('Riwayat Konsultasi') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="cpu-chip" :href="route('admin.training-model.index')" :current="request()->routeIs('admin.training-model.*')" wire:navigate>{{ __('Training Model') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
