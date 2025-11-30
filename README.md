@@ -1,8 +1,5 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 </p>
-
-&nbsp;
 
 # Sistem Pakar Rekomendasi Topik Penelitian
 
@@ -31,7 +28,7 @@ Proses kerjanya dibagi menjadi dua tahap utama (filter-then-classify):
 
 Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini secara lokal.
 
-- PHP (versi 8.1 atau lebih baru)
+- PHP (versi 8.3 atau lebih baru)
 
 - Composer
 
@@ -94,7 +91,13 @@ Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini s
   php artisan migrate
 ```
 
-9). Jalankan server development
+9). Jalankan proses build aset frontend
+
+```bash
+  npm run dev
+```
+
+10). Jalankan server development
 
 ```bash
   composer run dev
