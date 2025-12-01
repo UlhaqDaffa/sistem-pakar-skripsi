@@ -6,6 +6,7 @@ use App\Models\Konsultasi;
 new class extends Component {
     public ?Konsultasi $konsultasi = null;
     public $areaRisetFinal = null;
+    public string $hasilTab = 'minat';
 
     public function mount($konsultasi = null): void
     {
@@ -26,15 +27,38 @@ new class extends Component {
         if ($this->konsultasi && $this->konsultasi->areaRisetFinal) {
             $this->areaRisetFinal = $this->konsultasi->areaRisetFinal;
         }
+
+        if ($this->konsultasi && !$this->konsultasi->hasilMinat && $this->konsultasi->hasilAkademik) {
+            $this->hasilTab = 'akademik';
+        }
     }
 
-    public function getTeknologiArray(): array
+    public function selectHasilTab(string $tab): void
     {
-        if (!$this->areaRisetFinal) {
+        if (in_array($tab, ['minat', 'akademik'], true)) {
+            $this->hasilTab = $tab;
+        }
+    }
+
+    public function getAreaUntukTab(): ?\App\Models\AreaRiset
+    {
+        if (!$this->konsultasi) {
+            return null;
+        }
+
+        return $this->hasilTab === 'akademik'
+            ? $this->konsultasi->hasilAkademik
+            : $this->konsultasi->hasilMinat;
+    }
+
+    public function getTeknologiArray(?\App\Models\AreaRiset $area = null): array
+    {
+        $area ??= $this->areaRisetFinal;
+        if (!$area) {
             return [];
         }
 
-        return $this->areaRisetFinal->tags
+        return $area->tags
             ->where('tipe', 'TEKNOLOGI')
             ->pluck('nama_tag')
             ->filter()
@@ -42,13 +66,14 @@ new class extends Component {
             ->all();
     }
 
-    public function getMetodeArray(): array
+    public function getMetodeArray(?\App\Models\AreaRiset $area = null): array
     {
-        if (!$this->areaRisetFinal) {
+        $area ??= $this->areaRisetFinal;
+        if (!$area) {
             return [];
         }
 
-        return $this->areaRisetFinal->tags
+        return $area->tags
             ->where('tipe', 'METODE')
             ->pluck('nama_tag')
             ->filter()
@@ -56,31 +81,34 @@ new class extends Component {
             ->all();
     }
 
-    public function getStudiKasusArray(): array
+    public function getStudiKasusArray(?\App\Models\AreaRiset $area = null): array
     {
-        if (!$this->areaRisetFinal) {
+        $area ??= $this->areaRisetFinal;
+        if (!$area || !$area->contoh_studi_kasus) {
             return [];
         }
-        return array_map('trim', explode(',', $this->areaRisetFinal->contoh_studi_kasus));
+        return array_map('trim', explode(',', $area->contoh_studi_kasus));
     }
 
-    public function getFormulasiJudul(): array
+    public function getFormulasiJudul(?\App\Models\AreaRiset $area = null): array
     {
-        if (!$this->areaRisetFinal) {
+        $area ??= $this->areaRisetFinal;
+        if (!$area) {
             return [];
         }
 
         // Gunakan TitleFormulationService untuk generate judul
         $titleService = app(\App\Services\TitleFormulationService::class);
-        $judul = $titleService->generateTitles($this->areaRisetFinal);
+        $judul = $titleService->generateTitles($area);
 
         // Jika tidak ada judul dari service, return array kosong
         return $judul ?: [];
     }
 
-    public function getLevelLabel(): string
+    public function getLevelLabel(?\App\Models\AreaRiset $area = null): string
     {
-        if (!$this->areaRisetFinal) {
+        $area ??= $this->areaRisetFinal;
+        if (!$area) {
             return '-';
         }
 
@@ -90,16 +118,17 @@ new class extends Component {
             3 => 'Level 3 • Deep Tech / Tinggi',
         ];
 
-        return $map[$this->areaRisetFinal->level_kesulitan] ?? 'Level tidak diketahui';
+        return $map[$area->level_kesulitan] ?? 'Level tidak diketahui';
     }
 
-    public function getTargetArketipeLabel(): string
+    public function getTargetArketipeLabel(?\App\Models\AreaRiset $area = null): string
     {
-        if (!$this->areaRisetFinal) {
+        $area ??= $this->areaRisetFinal;
+        if (!$area) {
             return '-';
         }
 
-        return match ($this->areaRisetFinal->target_arketipe) {
+        return match ($area->target_arketipe) {
             'CREATOR' => 'Creator • Eksperimen & Implementasi UI/Produk',
             'ANALIS' => 'Analis • Data, insight, & validasi',
             'ARCHITECT' => 'Architect • Sistem besar & integrasi',
@@ -160,91 +189,135 @@ new class extends Component {
                     </div>
                 </div>
 
-                <!-- 2. Deskripsi -->
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">2. Deskripsi</h2>
-                    <p class="text-gray-700 dark:text-neutral-300 leading-relaxed">
-                        {{ $areaRisetFinal->deskripsi }}
-                    </p>
-                </div>
-
-                <!-- 3. Teknologi & Metode Kunci -->
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">3. Teknologi & Metode Kunci</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Teknologi Utama -->
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-800 dark:text-neutral-200 mb-3">Teknologi Utama:</h3>
-                            @php($teknologiTags = $this->getTeknologiArray())
-                            @if(empty($teknologiTags))
-                                <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada tag teknologi yang ditautkan.</p>
-                            @else
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($teknologiTags as $teknologi)
-                                        <span class="px-3 py-1 text-sm rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-200">
-                                            {{ $teknologi }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-
-                        <!-- Metode Kunci -->
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-800 dark:text-neutral-200 mb-3">Metode Kunci:</h3>
-                            @php($metodeTags = $this->getMetodeArray())
-                            @if(empty($metodeTags))
-                                <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada tag metode yang ditautkan.</p>
-                            @else
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($metodeTags as $metode)
-                                        <span class="px-3 py-1 text-sm rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
-                                            {{ $metode }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
+                <!-- Tabs hasil minat vs akademik -->
+                @php($activeArea = $this->getAreaUntukTab())
+                <div class="pt-4">
+                    <div class="flex flex-wrap gap-3 border-b border-gray-200 dark:border-neutral-700 pb-4">
+                        <button
+                            wire:click="selectHasilTab('minat')"
+                            class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 {{ $this->hasilTab === 'minat' ? 'bg-primary text-white shadow' : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300' }}"
+                        >
+                            Hasil Minat (Rule-Based)
+                        </button>
+                        <button
+                            wire:click="selectHasilTab('akademik')"
+                            class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 {{ $this->hasilTab === 'akademik' ? 'bg-primary text-white shadow' : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300' }}"
+                        >
+                            Hasil Akademik (Decision Tree)
+                        </button>
                     </div>
-                </div>
 
-                <!-- 4. Contoh Studi Kasus -->
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">4. Contoh Studi Kasus</h2>
-                    <div class="space-y-3">
-                        @foreach($this->getStudiKasusArray() as $index => $studiKasus)
-                            @if(!empty(trim($studiKasus)))
-                                <div class="bg-gray-50 dark:bg-neutral-800/50 p-4 rounded-lg border border-gray-200 dark:border-neutral-700">
-                                    <div class="flex items-start">
-                                        <span class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold mr-3">
-                                            {{ $index + 1 }}
+                    <div class="mt-6 space-y-8">
+                        @if($activeArea)
+                            <div class="bg-white/70 dark:bg-neutral-900/40 p-6 rounded-xl border border-gray-200/70 dark:border-neutral-700/70">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                    {{ $activeArea->nama_area }}
+                                </h3>
+                                <p class="text-sm text-gray-500 dark:text-neutral-400 mb-4">
+                                    {{ $this->hasilTab === 'minat' ? 'Rekomendasi berdasarkan preferensi/minat Anda.' : 'Rekomendasi berdasarkan performa akademik pada mata kuliah kunci.' }}
+                                </p>
+                                <p class="text-gray-700 dark:text-neutral-300 leading-relaxed">
+                                    {{ $activeArea->deskripsi }}
+                                </p>
+                                <div class="flex flex-wrap items-center gap-3 mt-4 text-xs">
+                                    <span class="px-3 py-1 rounded-full bg-white/80 dark:bg-neutral-800/60 text-gray-700 dark:text-neutral-200 border border-primary/20">
+                                        {{ $this->getTargetArketipeLabel($activeArea) }}
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-white/80 dark:bg-neutral-800/60 text-gray-700 dark:text-neutral-200 border border-emerald-300/50">
+                                        {{ $this->getLevelLabel($activeArea) }}
+                                    </span>
+                                    @if($activeArea->tipe_sistem)
+                                        <span class="px-3 py-1 rounded-full bg-white/80 dark:bg-neutral-800/60 text-gray-700 dark:text-neutral-200 border border-indigo-300/50">
+                                            {{ $activeArea->tipe_sistem }}
                                         </span>
-                                        <div>
-                                            <p class="font-medium text-gray-900 dark:text-white">Studi Kasus {{ $index + 1 }}:</p>
-                                            <p class="text-gray-700 dark:text-neutral-300 mt-1">{{ $studiKasus }}</p>
-                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Teknologi & Metode Kunci</h2>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-800 dark:text-neutral-200 mb-3">Teknologi Utama:</h3>
+                                        @php($teknologiTags = $this->getTeknologiArray($activeArea))
+                                        @if(empty($teknologiTags))
+                                            <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada tag teknologi yang ditautkan.</p>
+                                        @else
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach($teknologiTags as $teknologi)
+                                                    <span class="px-3 py-1 text-sm rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-200">
+                                                        {{ $teknologi }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-800 dark:text-neutral-200 mb-3">Metode Kunci:</h3>
+                                        @php($metodeTags = $this->getMetodeArray($activeArea))
+                                        @if(empty($metodeTags))
+                                            <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada tag metode yang ditautkan.</p>
+                                        @else
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach($metodeTags as $metode)
+                                                    <span class="px-3 py-1 text-sm rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                                                        {{ $metode }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- 5. Formulasi Judul -->
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">5. Formulasi Judul</h2>
-                    <p class="text-gray-600 dark:text-neutral-400 mb-4">
-                        Berikut adalah beberapa pola formulasi judul yang dapat Anda gunakan sebagai inspirasi:
-                    </p>
-                    <div class="space-y-4">
-                        @foreach($this->getFormulasiJudul() as $index => $judul)
-                            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-500">
-                                <p class="text-gray-800 dark:text-neutral-200 italic">
-                                    "{{ $judul }}"
-                                </p>
                             </div>
-                        @endforeach
+
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contoh Studi Kasus</h2>
+                                <div class="space-y-3">
+                                    @forelse($this->getStudiKasusArray($activeArea) as $index => $studiKasus)
+                                        @if(!empty(trim($studiKasus)))
+                                            <div class="bg-gray-50 dark:bg-neutral-800/50 p-4 rounded-lg border border-gray-200 dark:border-neutral-700">
+                                                <div class="flex items-start">
+                                                    <span class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold mr-3">
+                                                        {{ $index + 1 }}
+                                                    </span>
+                                                    <div>
+                                                        <p class="font-medium text-gray-900 dark:text-white">Studi Kasus {{ $index + 1 }}:</p>
+                                                        <p class="text-gray-700 dark:text-neutral-300 mt-1">{{ $studiKasus }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @empty
+                                        <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada contoh studi kasus.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Formulasi Judul</h2>
+                                <p class="text-gray-600 dark:text-neutral-400 mb-4">
+                                    Berikut adalah beberapa pola formulasi judul yang dapat Anda gunakan sebagai inspirasi:
+                                </p>
+                                <div class="space-y-4">
+                                    @forelse($this->getFormulasiJudul($activeArea) as $judul)
+                                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-500">
+                                            <p class="text-gray-800 dark:text-neutral-200 italic">
+                                                "{{ $judul }}"
+                                            </p>
+                                        </div>
+                                    @empty
+                                        <p class="text-sm text-gray-500 dark:text-neutral-400">Belum ada pola judul untuk area ini.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @else
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-yellow-800 dark:text-yellow-100">
+                                <p class="font-semibold mb-1">Belum ada rekomendasi pada tab ini.</p>
+                                <p class="text-sm">Lengkapi data konsultasi atau lakukan input nilai mata kuliah untuk melihat rekomendasi.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

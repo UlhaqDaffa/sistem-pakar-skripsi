@@ -36,8 +36,8 @@ class DecisionTreeService
                 if (!isset($nilaiMataKuliah[$key])) {
                     throw new Exception("Key '{$key}' tidak ditemukan dalam input");
                 }
-                if (!is_numeric($nilaiMataKuliah[$key]) || $nilaiMataKuliah[$key] < 0 || $nilaiMataKuliah[$key] > 100) {
-                    throw new Exception("Nilai '{$key}' harus antara 0-100");
+                if (!is_numeric($nilaiMataKuliah[$key]) || $nilaiMataKuliah[$key] < 1 || $nilaiMataKuliah[$key] > 5) {
+                    throw new Exception("Nilai '{$key}' harus antara 1-5");
                 }
             }
 

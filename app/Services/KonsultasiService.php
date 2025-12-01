@@ -124,7 +124,7 @@ class KonsultasiService
                     throw new Exception("Mata kuliah dengan kode '{$kodeMataKuliah}' tidak ditemukan");
                 }
 
-                // Konversi nilai A-E ke angka (A=4, B=3, C=2, D=1, E=0)
+                // Konversi nilai ke skala numerik Decision Tree
                 $nilaiAngka = $this->convertNilaiAEToAngka($nilai);
 
                 // Hapus nilai lama jika ada
@@ -196,16 +196,15 @@ class KonsultasiService
      * Konversi nilai A-E ke angka
      * A = 4, B = 3, C = 2, D = 1, E = 0
      */
-    private function convertNilaiAEToAngka(string $nilai): float
+    private function convertNilaiAEToAngka(string|int|float $nilai): float
     {
-        return match (strtoupper($nilai)) {
-            'A' => 4.0,
-            'B' => 3.0,
-            'C' => 2.0,
-            'D' => 1.0,
-            'E' => 0.0,
-            default => 0.0,
-        };
+        if (is_numeric($nilai)) {
+            return (float) $nilai;
+        }
+
+        $scoringService = app(ScoringService::class);
+
+        return (float) $scoringService->convertNilaiHurufKeSkor((string) $nilai);
     }
 
     private function getHandlerForQuestion(Pertanyaan $question): StepHandler

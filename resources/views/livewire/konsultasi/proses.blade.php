@@ -122,10 +122,25 @@ new class extends Component {
         ]);
 
         // Simpan nilai mata kuliah
-        app(KonsultasiService::class)->saveNilaiMataKuliah($this->konsultasi, $this->nilaiMataKuliah);
+        $nilaiTerkonversi = array_map(fn ($nilai) => $this->konversiNilaiHurufKeAngka($nilai), $this->nilaiMataKuliah);
+
+        app(KonsultasiService::class)->saveNilaiMataKuliah($this->konsultasi, $nilaiTerkonversi);
 
         // Lanjut ke finish
         $this->finishConsultation();
+    }
+
+    private function konversiNilaiHurufKeAngka(string $nilai): int
+    {
+        $mapping = [
+            'A' => 5,
+            'B' => 4,
+            'C' => 3,
+            'D' => 2,
+            'E' => 1,
+        ];
+
+        return $mapping[strtoupper($nilai)] ?? 1;
     }
 
     public function finishConsultation(): void

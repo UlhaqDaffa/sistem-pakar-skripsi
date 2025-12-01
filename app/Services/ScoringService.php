@@ -176,5 +176,21 @@ class ScoringService
 
         return $skorPerBidang;
     }
+
+    /**
+     * Konversi nilai huruf A-E ke skala 1-5 (A=5, E=1) untuk digunakan lintas service
+     */
+    public function convertNilaiHurufKeSkor(string $nilai): int
+    {
+        $mapping = [
+            'A' => 5,
+            'B' => 4,
+            'C' => 3,
+            'D' => 2,
+            'E' => 1,
+        ];
+
+        return $mapping[strtoupper($nilai)] ?? 1;
+    }
 }
 
