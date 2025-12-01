@@ -13,9 +13,11 @@ class DecisionTreeService
     private string $apiUrl;
     private int $timeout;
     private int $retryAttempts;
+    private DecisionTreeProcessor $processor;
 
-    public function __construct()
+    public function __construct(DecisionTreeProcessor $processor)
     {
+        $this->processor = $processor;
         $this->apiUrl = config('decision_tree.api_url');
         $this->timeout = config('decision_tree.timeout', 30);
         $this->retryAttempts = config('decision_tree.retry_attempts', 3);
@@ -66,18 +68,22 @@ class DecisionTreeService
                 return null;
             }
 
-            // Cari AreaRiset berdasarkan kode_area
-            $areaRiset = AreaRiset::where('kode_area', $kodeArea)->first();
+            $areaRiset = $this->processor->selectAreaRiset($kodeArea, $requestData, (float) $confidence);
 
             if (!$areaRiset) {
-                Log::warning('Decision Tree API: AreaRiset tidak ditemukan untuk kode_area', ['kode_area' => $kodeArea]);
+                Log::warning('Decision Tree API: Processor tidak menemukan area riset', [
+                    'kode_area_api' => $kodeArea,
+                    'nilai' => $requestData,
+                    'confidence' => $confidence,
+                ]);
                 return null;
             }
 
             Log::info('Decision Tree API: Prediksi berhasil', [
-                'kode_area' => $kodeArea,
+                'kode_area_api' => $kodeArea,
                 'confidence' => $confidence,
-                'area_riset_id' => $areaRiset->id
+                'area_riset_id' => $areaRiset->id,
+                'area_riset_level' => $areaRiset->level_kesulitan,
             ]);
 
             return $areaRiset;

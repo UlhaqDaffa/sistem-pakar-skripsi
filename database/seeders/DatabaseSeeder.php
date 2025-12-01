@@ -11,6 +11,7 @@ use Database\Seeders\PertanyaanSeeder;
 use Database\Seeders\MinatBidangSeeder;
 use Database\Seeders\AreaRisetSeeder;
 use Database\Seeders\PolaJudulSeeder;
+use Database\Seeders\DecisionTreeRulesSeeder;
 
 use Illuminate\Support\Facades\DB;
 
@@ -37,6 +38,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MataKuliahKunciSeeder::class);
         $this->call(KonfigurasiPembobotanSeeder::class);
         $this->call(RulesSeeder::class);
+        $this->call(DecisionTreeRulesSeeder::class);
 
         // Deprecated: MinatDanRisetSeeder sudah diganti dengan MinatBidangSeeder dan AreaRisetSeeder
         // $this->call(MinatDanRisetSeeder::class);

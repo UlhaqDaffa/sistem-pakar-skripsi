@@ -24,13 +24,24 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public array $conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
     public bool $showDeleteModal = false;
     public ?int $deleteId = null;
+    public string $engineFilter = 'all';
 
     public function getRulesProperty()
     {
-        return Rule::with(['areaRiset'])
+        $query = Rule::with(['areaRiset'])
             ->orderBy('prioritas')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->orderBy('created_at', 'desc');
+
+        if ($this->engineFilter === 'decision_tree') {
+            $query->where('kondisi->engine', 'decision_tree');
+        } elseif ($this->engineFilter === 'rule_based') {
+            $query->where(function ($q) {
+                $q->whereNull('kondisi->engine')
+                    ->orWhere('kondisi->engine', '!=', 'decision_tree');
+            });
+        }
+
+        return $query->paginate(10);
     }
 
     public function getAreaRisetsProperty()
@@ -117,6 +128,16 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         if (empty($this->conditions)) {
             $this->conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
         }
+    }
+
+    public function setEngineFilter(string $filter): void
+    {
+        if (!in_array($filter, ['all', 'rule_based', 'decision_tree'], true)) {
+            return;
+        }
+
+        $this->engineFilter = $filter;
+        $this->resetPage();
     }
 
     public function save(): void
@@ -266,6 +287,29 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                     Tambah Rule
                 </span>
             </button>
+        </div>
+
+        <!-- Filter Engine -->
+        <div class="flex flex-wrap items-center gap-3">
+            @php
+                $filters = [
+                    'all' => 'Semua Rules',
+                    'rule_based' => 'Rule-Based',
+                    'decision_tree' => 'Decision Tree',
+                ];
+            @endphp
+            @foreach($filters as $value => $label)
+                <button
+                    wire:click="setEngineFilter('{{ $value }}')"
+                    @class([
+                        'px-4 py-2 text-sm font-semibold rounded-full transition-colors shadow-sm',
+                        'bg-primary text-white' => $engineFilter === $value,
+                        'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700' => $engineFilter !== $value,
+                    ])
+                >
+                    {{ $label }}
+                </button>
+            @endforeach
         </div>
 
         <!-- Flash Message -->
