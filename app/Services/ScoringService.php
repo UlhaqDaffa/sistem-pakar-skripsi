@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\AreaRiset;
 use App\Models\Konsultasi;
 use App\Models\KonfigurasiPembobotan;
-use App\Models\MinatBidang;
 use Illuminate\Support\Collection;
 
 class ScoringService
@@ -28,9 +26,12 @@ class ScoringService
     ];
 
     /**
-     * Hitung Hasil_Minat berdasarkan jawaban konsultasi
+     * Hitung total skor minat ter-bobot berdasarkan jawaban konsultasi.
+     *
+     * Mengembalikan satu angka (float) yang merepresentasikan kekuatan minat
+     * gabungan user di seluruh bidang.
      */
-    public function calculateHasilMinat(Konsultasi $konsultasi): ?AreaRiset
+    public function calculateHasilMinat(Konsultasi $konsultasi): float
     {
         // 1. Ambil semua jawaban konsultasi dengan relasi
         $jawabanKonsultasi = $konsultasi->jawabanKonsultasis()
@@ -47,18 +48,7 @@ class ScoringService
         // 4. Hitung skor asesmen per minat_bidang
         $skorAsesmenPerBidang = $this->calculateSkorAsesmen($jawabanAsesmen);
 
-        // 5. Ambil konfigurasi pembobotan aktif
-        $konfigurasi = KonfigurasiPembobotan::getActive();
-        if (!$konfigurasi) {
-            // Default jika tidak ada konfigurasi
-            $bobotMinat = 0.60;
-            $bobotAsesmen = 0.40;
-        } else {
-            $bobotMinat = (float) $konfigurasi->bobot_minat;
-            $bobotAsesmen = (float) $konfigurasi->bobot_asesmen;
-        }
-
-        // 6. Gabungkan skor dengan pembobotan
+        // 6. Gabungkan skor dengan pembobotan per bidang
         $skorFinalPerBidang = [];
         $allBidangCodes = array_unique(array_merge(
             array_keys($skorMinatPerBidang),
@@ -71,24 +61,14 @@ class ScoringService
             $skorFinalPerBidang[$kodeBidang] = ($skorMinat * $bobotMinat) + ($skorAsesmen * $bobotAsesmen);
         }
 
-        // 7. Pilih minat_bidang dengan skor tertinggi
+        // 7. Agregasi menjadi satu skor total (jumlah semua bidang)
         if (empty($skorFinalPerBidang)) {
-            return null;
+            return 0.0;
         }
 
-        arsort($skorFinalPerBidang);
-        $kodeBidangTerpilih = array_key_first($skorFinalPerBidang);
-        $minatBidang = MinatBidang::where('kode_bidang', $kodeBidangTerpilih)->first();
+        $totalSkor = array_sum($skorFinalPerBidang);
 
-        if (!$minatBidang) {
-            return null;
-        }
-
-        // 8. Cari area_riset terbaik di dalam minat_bidang tersebut
-        // Untuk sekarang, ambil yang pertama. Bisa dikembangkan dengan logika prioritas
-        $areaRiset = $minatBidang->areaRisets()->first();
-
-        return $areaRiset;
+        return (float) $totalSkor;
     }
 
     /**

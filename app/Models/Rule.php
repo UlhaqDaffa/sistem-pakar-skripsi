@@ -16,8 +16,13 @@ class Rule extends Model
         'kode_rule',
         'nama_rule',
         'deskripsi',
-        'kondisi',
         'aksi',
+        'min_score',
+        'max_score',
+        'min_skill_level',
+        'allowed_archetypes',
+        'engine_type',
+        'dt_config',
         'minat_bidang_id',
         'area_riset_id',
         'prioritas',
@@ -25,10 +30,14 @@ class Rule extends Model
     ];
 
     protected $casts = [
-        'kondisi' => 'array',
         'aksi' => 'array',
+        'allowed_archetypes' => 'array',
+        'dt_config' => 'array',
         'is_active' => 'boolean',
         'prioritas' => 'integer',
+        'min_score' => 'integer',
+        'max_score' => 'integer',
+        'min_skill_level' => 'integer',
     ];
 
     /**

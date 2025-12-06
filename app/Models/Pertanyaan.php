@@ -17,6 +17,7 @@ class Pertanyaan extends Model
 
     protected $fillable = [
         'kategori_id',
+        'minat_bidang_id',
         'kode_pertanyaan',
         'teks_pertanyaan',
         'is_start_point',
@@ -25,6 +26,14 @@ class Pertanyaan extends Model
     public function kategori(): BelongsTo
     {
         return $this->belongsTo(KategoriPertanyaan::class, 'kategori_id');
+    }
+
+    /**
+     * Relasi ke MinatBidang (opsional, hanya untuk pertanyaan yang terkait minat spesifik)
+     */
+    public function minatBidang(): BelongsTo
+    {
+        return $this->belongsTo(MinatBidang::class, 'minat_bidang_id');
     }
 
     /**

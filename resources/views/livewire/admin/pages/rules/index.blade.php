@@ -4,10 +4,8 @@ use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use App\Models\Rule;
 use App\Models\AreaRiset;
-use App\Models\Pertanyaan;
-use Illuminate\Validation\Rule as ValidationRule;
 use Livewire\Attributes\Layout;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule as ValidationRule;
 
 new #[Layout('components.layouts.app-admin')] class extends Component {
     use WithPagination;
@@ -21,7 +19,17 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public ?int $areaRisetId = null;
     public int $prioritas = 100;
     public bool $isActive = true;
-    public array $conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
+
+    // Fields untuk Rule-Based System (RBS)
+    public int $minScore = 0;
+    public int $maxScore = 100;
+    public int $minSkillLevel = 1;
+    public array $allowedArchetypes = [];
+
+    // Engine type & konfigurasi DT opsional
+    public string $engineType = 'rule_based';
+    public array $dtConfig = [];
+
     public bool $showDeleteModal = false;
     public ?int $deleteId = null;
     public string $engineFilter = 'all';
@@ -33,12 +41,9 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
             ->orderBy('created_at', 'desc');
 
         if ($this->engineFilter === 'decision_tree') {
-            $query->where('kondisi->engine', 'decision_tree');
+            $query->where('engine_type', 'decision_tree');
         } elseif ($this->engineFilter === 'rule_based') {
-            $query->where(function ($q) {
-                $q->whereNull('kondisi->engine')
-                    ->orWhere('kondisi->engine', '!=', 'decision_tree');
-            });
+            $query->where('engine_type', 'rule_based');
         }
 
         return $query->paginate(10);
@@ -49,19 +54,30 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         return AreaRiset::orderBy('nama_area')->get();
     }
 
-    public function getPertanyaansProperty()
-    {
-        return Pertanyaan::with('kategori')
-            ->orderBy('kode_pertanyaan')
-            ->get();
-    }
-
     public function openCreateModal(): void
     {
-        $this->reset(['id', 'kodeRule', 'namaRule', 'deskripsi', 'areaRisetId', 'prioritas', 'isActive', 'conditions']);
-        $this->conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
+        $this->reset([
+            'id',
+            'kodeRule',
+            'namaRule',
+            'deskripsi',
+            'areaRisetId',
+            'prioritas',
+            'isActive',
+            'minScore',
+            'maxScore',
+            'minSkillLevel',
+            'allowedArchetypes',
+            'engineType',
+            'dtConfig',
+        ]);
         $this->prioritas = 100;
         $this->isActive = true;
+        $this->engineType = 'rule_based';
+        $this->minScore = 0;
+        $this->maxScore = 100;
+        $this->minSkillLevel = 1;
+        $this->allowedArchetypes = [];
         $this->editing = false;
         $this->showModal = true;
     }
@@ -76,32 +92,13 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         $this->areaRisetId = $rule->area_riset_id;
         $this->prioritas = $rule->prioritas;
         $this->isActive = $rule->is_active;
-        
-        // Parse conditions from JSON
-        $kondisi = $rule->kondisi ?? [];
-        $this->conditions = [];
-        
-        if (isset($kondisi['conditions']) && is_array($kondisi['conditions'])) {
-            foreach ($kondisi['conditions'] as $condition) {
-                $pertanyaanId = null;
-                if (isset($condition['pertanyaan'])) {
-                    // Find pertanyaan by kode_pertanyaan
-                    $pertanyaan = Pertanyaan::where('kode_pertanyaan', $condition['pertanyaan'])->first();
-                    $pertanyaanId = $pertanyaan?->id;
-                }
-                
-                $this->conditions[] = [
-                    'pertanyaan_id' => $pertanyaanId,
-                    'operator' => $condition['operator'] ?? '>=',
-                    'value' => $condition['nilai'] ?? $condition['jawaban'] ?? '',
-                ];
-            }
-        }
-        
-        if (empty($this->conditions)) {
-            $this->conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
-        }
-        
+        $this->minScore = $rule->min_score ?? 0;
+        $this->maxScore = $rule->max_score ?? 100;
+        $this->minSkillLevel = $rule->min_skill_level ?? 1;
+        $this->allowedArchetypes = $rule->allowed_archetypes ?? [];
+        $this->engineType = $rule->engine_type ?? 'rule_based';
+        $this->dtConfig = $rule->dt_config ?? [];
+
         $this->editing = true;
         $this->showModal = true;
     }
@@ -109,25 +106,24 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public function closeModal(): void
     {
         $this->showModal = false;
-        $this->reset(['id', 'kodeRule', 'namaRule', 'deskripsi', 'areaRisetId', 'prioritas', 'isActive', 'conditions', 'editing']);
-        $this->conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
+        $this->reset([
+            'id',
+            'kodeRule',
+            'namaRule',
+            'deskripsi',
+            'areaRisetId',
+            'prioritas',
+            'isActive',
+            'minScore',
+            'maxScore',
+            'minSkillLevel',
+            'allowedArchetypes',
+            'engineType',
+            'dtConfig',
+            'editing',
+        ]);
         $this->prioritas = 100;
         $this->isActive = true;
-    }
-
-    public function addCondition(): void
-    {
-        $this->conditions[] = ['pertanyaan_id' => null, 'operator' => '>=', 'value' => ''];
-    }
-
-    public function removeCondition(int $index): void
-    {
-        unset($this->conditions[$index]);
-        $this->conditions = array_values($this->conditions);
-        
-        if (empty($this->conditions)) {
-            $this->conditions = [['pertanyaan_id' => null, 'operator' => '>=', 'value' => '']];
-        }
     }
 
     public function setEngineFilter(string $filter): void
@@ -154,36 +150,16 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
             'areaRisetId' => 'required|exists:area_riset,id',
             'prioritas' => 'required|integer|min:1',
             'isActive' => 'boolean',
-            'conditions' => 'required|array|min:1',
-            'conditions.*.pertanyaan_id' => 'required|exists:pertanyaan,id',
-            'conditions.*.operator' => 'required|in:>,<,>=,<=,==,!=',
-            'conditions.*.value' => 'required|string',
+            'engineType' => 'required|in:rule_based,decision_tree',
+            'minScore' => 'required|integer|min:0',
+            'maxScore' => 'required|integer|gte:minScore',
+            'minSkillLevel' => 'required|integer|min:1|max:4',
+            'allowedArchetypes' => 'array',
+            'allowedArchetypes.*' => 'in:CREATOR,ANALIS,ARCHITECT,GENERAL',
         ];
         
         $this->validate($rules);
-        
-        // Build kondisi JSON
-        $kondisiArray = [];
-        foreach ($this->conditions as $condition) {
-            $pertanyaan = Pertanyaan::findOrFail($condition['pertanyaan_id']);
-            $kondisiItem = [
-                'pertanyaan' => $pertanyaan->kode_pertanyaan,
-                'operator' => $condition['operator'],
-            ];
-            
-            // Determine if value is numeric (nilai) or text (jawaban)
-            $value = trim($condition['value']);
-            if (is_numeric($value)) {
-                $kondisiItem['nilai'] = (int) $value;
-            } else {
-                $kondisiItem['jawaban'] = $value;
-            }
-            
-            $kondisiArray[] = $kondisiItem;
-        }
-        
-        $kondisi = ['conditions' => $kondisiArray];
-        
+
         // Build aksi JSON
         $aksi = [
             'area_riset_id' => $this->areaRisetId,
@@ -194,8 +170,13 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
             'kode_rule' => $this->kodeRule,
             'nama_rule' => $this->namaRule,
             'deskripsi' => $this->deskripsi ?: null,
-            'kondisi' => $kondisi,
             'aksi' => $aksi,
+            'min_score' => $this->minScore,
+            'max_score' => $this->maxScore,
+            'min_skill_level' => $this->minSkillLevel,
+            'allowed_archetypes' => $this->engineType === 'rule_based' ? $this->allowedArchetypes : null,
+            'engine_type' => $this->engineType,
+            'dt_config' => $this->engineType === 'decision_tree' ? $this->dtConfig : null,
             'area_riset_id' => $this->areaRisetId,
             'prioritas' => $this->prioritas,
             'is_active' => $this->isActive,
@@ -235,36 +216,19 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         $this->resetPage();
     }
 
-    public function formatRuleLogic(Rule $rule): string
+    public function formatRuleSummary(Rule $rule): string
     {
-        $kondisi = $rule->kondisi ?? [];
-        $parts = [];
-        
-        if (isset($kondisi['conditions']) && is_array($kondisi['conditions'])) {
-            foreach ($kondisi['conditions'] as $condition) {
-                $pertanyaanKode = $condition['pertanyaan'] ?? '?';
-                $operator = $condition['operator'] ?? '==';
-                $value = $condition['nilai'] ?? $condition['jawaban'] ?? '?';
-                
-                $operatorText = match($operator) {
-                    '>=' => '≥',
-                    '<=' => '≤',
-                    '>' => '>',
-                    '<' => '<',
-                    '==' => '=',
-                    '!=' => '≠',
-                    default => $operator,
-                };
-                
-                $parts[] = "{$pertanyaanKode} {$operatorText} {$value}";
-            }
+        if ($rule->engine_type === 'decision_tree') {
+            return 'Decision Tree mapping';
         }
-        
-        if (empty($parts)) {
-            return 'Tidak ada kondisi';
-        }
-        
-        return 'IF ' . implode(' AND ', $parts);
+
+        $range = "Skor {$rule->min_score}–{$rule->max_score}";
+        $skill = "Skill ≥ {$rule->min_skill_level}";
+        $archetypes = $rule->allowed_archetypes
+            ? implode(', ', $rule->allowed_archetypes)
+            : 'Semua arketipe';
+
+        return "{$range}; {$skill}; {$archetypes}";
     }
 };
 
@@ -327,7 +291,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                         <tr>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Kode Rule</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Nama Rule</th>
-                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Kondisi (IF)</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Ringkasan Rule</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Area Riset</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Prioritas</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wider">Status</th>
@@ -348,7 +312,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-sm text-gray-700 dark:text-neutral-300 font-mono bg-gray-50 dark:bg-neutral-700/50 px-3 py-2 rounded-lg">
-                                        {{ $this->formatRuleLogic($rule) }}
+                                        {{ $this->formatRuleSummary($rule) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
@@ -539,93 +503,83 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                                 </label>
                             </div>
 
-                            <!-- Conditions Builder -->
-                            <div class="border-t border-gray-200 dark:border-neutral-700 pt-5">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 dark:text-neutral-300">Kondisi (IF)</label>
-                                        <p class="text-xs text-gray-500 dark:text-neutral-400 mt-1">Semua kondisi harus terpenuhi (AND logic)</p>
-                                    </div>
-                                    <button type="button"
-                                            wire:click="addCondition"
-                                            class="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg transition-colors">
-                                        <span class="flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                            </svg>
-                                            Tambah Kondisi
-                                        </span>
-                                    </button>
+                            <!-- Engine & RBS Fields -->
+                            <div class="border-t border-gray-200 dark:border-neutral-700 pt-5 space-y-4">
+                                <!-- Engine Type -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">Engine</label>
+                                    <select wire:model="engineType"
+                                            class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-3 transition-colors">
+                                        <option value="rule_based">Rule-Based</option>
+                                        <option value="decision_tree">Decision Tree</option>
+                                    </select>
+                                    @error('engineType') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
                                 </div>
 
-                                <div class="space-y-4">
-                                    @foreach($conditions as $index => $condition)
-                                        <div class="p-4 bg-gray-50 dark:bg-neutral-700/50 rounded-lg border border-gray-200 dark:border-neutral-600">
-                                            <div class="flex items-start gap-3">
-                                                <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                    <!-- Pertanyaan -->
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Pertanyaan</label>
-                                                        <select wire:model="conditions.{{ $index }}.pertanyaan_id"
-                                                                class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-3 py-2 text-sm transition-colors">
-                                                            <option value="">Pilih Pertanyaan</option>
-                                                            @foreach($this->pertanyaans as $pertanyaan)
-                                                                <option value="{{ $pertanyaan->id }}">
-                                                                    {{ $pertanyaan->kode_pertanyaan }} - {{ \Illuminate\Support\Str::limit($pertanyaan->teks_pertanyaan, 40) }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('conditions.' . $index . '.pertanyaan_id') 
-                                                            <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> 
-                                                        @enderror
-                                                    </div>
-
-                                                    <!-- Operator -->
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Operator</label>
-                                                        <select wire:model="conditions.{{ $index }}.operator"
-                                                                class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-3 py-2 text-sm transition-colors">
-                                                            <option value=">=">≥ (Lebih besar atau sama dengan)</option>
-                                                            <option value="<=">≤ (Lebih kecil atau sama dengan)</option>
-                                                            <option value=">">> (Lebih besar)</option>
-                                                            <option value="<">< (Lebih kecil)</option>
-                                                            <option value="==">= (Sama dengan)</option>
-                                                            <option value="!=">≠ (Tidak sama dengan)</option>
-                                                        </select>
-                                                        @error('conditions.' . $index . '.operator') 
-                                                            <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> 
-                                                        @enderror
-                                                    </div>
-
-                                                    <!-- Value -->
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Nilai/Jawaban</label>
-                                                        <input type="text"
-                                                               wire:model="conditions.{{ $index }}.value"
-                                                               class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-3 py-2 text-sm transition-colors"
-                                                               placeholder="80 atau MINAT_WEB">
-                                                        <p class="mt-1 text-xs text-gray-400 dark:text-neutral-500">Angka untuk nilai, teks untuk kode jawaban</p>
-                                                        @error('conditions.' . $index . '.value') 
-                                                            <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> 
-                                                        @enderror
-                                                    </div>
-                                                </div>
-
-                                                <!-- Remove Button -->
-                                                @if(count($conditions) > 1)
-                                                    <button type="button"
-                                                            wire:click="removeCondition({{ $index }})"
-                                                            class="p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                @endif
-                                            </div>
+                                <!-- RBS-only fields -->
+                                <div x-data x-show="$wire.engineType === 'rule_based'" x-cloak class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <!-- Min Score -->
+                                        <div>
+                                            <label for="minScore" class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">Min Score</label>
+                                            <input type="number"
+                                                   id="minScore"
+                                                   wire:model="minScore"
+                                                   class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-3 transition-colors">
+                                            @error('minScore') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
                                         </div>
-                                    @endforeach
+
+                                        <!-- Max Score -->
+                                        <div>
+                                            <label for="maxScore" class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">Max Score</label>
+                                            <input type="number"
+                                                   id="maxScore"
+                                                   wire:model="maxScore"
+                                                   class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-3 transition-colors">
+                                            @error('maxScore') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
+
+                                    <!-- Min Skill Level -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label for="minSkillLevel" class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">Min Skill Level</label>
+                                            <select id="minSkillLevel"
+                                                    wire:model="minSkillLevel"
+                                                    class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-3 transition-colors">
+                                                <option value="1">1 - Sangat Dasar</option>
+                                                <option value="2">2 - Dasar</option>
+                                                <option value="3">3 - Menengah</option>
+                                                <option value="4">4 - Lanjut</option>
+                                            </select>
+                                            @error('minSkillLevel') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
+                                        </div>
+
+                                        <!-- Allowed Archetypes -->
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">Allowed Archetypes</label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                @foreach(['CREATOR','ANALIS','ARCHITECT','GENERAL'] as $arch)
+                                                    <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-neutral-300">
+                                                        <input type="checkbox"
+                                                               value="{{ $arch }}"
+                                                               wire:model="allowedArchetypes"
+                                                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-neutral-700 dark:border-neutral-600">
+                                                        <span>{{ $arch }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                            @error('allowedArchetypes') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
                                 </div>
-                                @error('conditions') <span class="mt-2 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
+
+                                <!-- Placeholder untuk konfigurasi Decision Tree (opsional) -->
+                                <div x-data x-show="$wire.engineType === 'decision_tree'" x-cloak>
+                                    <p class="text-xs text-gray-500 dark:text-neutral-400">
+                                        Konfigurasi khusus Decision Tree dapat ditambahkan di sini (dt_config).
+                                    </p>
+                                </div>
                             </div>
                         </div>
 

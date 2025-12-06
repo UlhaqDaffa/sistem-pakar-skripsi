@@ -5,6 +5,7 @@ use Livewire\WithPagination;
 use App\Models\Pertanyaan;
 use App\Models\KategoriPertanyaan;
 use App\Models\OpsiJawaban;
+use App\Models\MinatBidang;
 use Livewire\Attributes\Layout;
 
 new #[Layout('components.layouts.app-admin')] class extends Component {
@@ -16,6 +17,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public ?int $id = null;
     public string $teksPertanyaan = '';
     public ?int $kategoriId = null;
+    public ?int $minatBidangId = null;
     public string $type = 'Pilihan Ganda';
     public array $options = [['label' => '', 'value' => 0]];
     public bool $showDeleteModal = false;
@@ -23,7 +25,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
 
     public function getQuestionsProperty()
     {
-        $query = Pertanyaan::with('kategori');
+        $query = Pertanyaan::with(['kategori', 'minatBidang']);
         
         if ($this->filterKategori) {
             $query->where('kategori_id', $this->filterKategori);
@@ -37,9 +39,14 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         return KategoriPertanyaan::orderBy('nama_kategori')->get();
     }
 
+    public function getMinatBidangsProperty()
+    {
+        return MinatBidang::orderBy('nama_bidang')->get();
+    }
+
     public function openCreateModal(): void
     {
-        $this->reset(['id', 'teksPertanyaan', 'kategoriId', 'type', 'options']);
+        $this->reset(['id', 'teksPertanyaan', 'kategoriId', 'minatBidangId', 'type', 'options']);
         $this->options = [['label' => '', 'value' => 0]];
         $this->editing = false;
         $this->showModal = true;
@@ -51,6 +58,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         $this->id = $question->id;
         $this->teksPertanyaan = $question->teks_pertanyaan;
         $this->kategoriId = $question->kategori_id;
+        $this->minatBidangId = $question->minat_bidang_id;
         
         // Check if question has options
         $opsiJawaban = $question->opsiJawaban;
@@ -74,7 +82,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public function closeModal(): void
     {
         $this->showModal = false;
-        $this->reset(['id', 'teksPertanyaan', 'kategoriId', 'type', 'options', 'editing']);
+        $this->reset(['id', 'teksPertanyaan', 'kategoriId', 'minatBidangId', 'type', 'options', 'editing']);
         $this->options = [['label' => '', 'value' => 0]];
     }
 
@@ -101,7 +109,15 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
             'kategoriId' => 'required|exists:kategori_pertanyaan,id',
             'type' => 'required|in:Pilihan Ganda,Input Nilai',
         ];
-        
+
+        $kategori = KategoriPertanyaan::findOrFail($this->kategoriId);
+        $kategoriKode = $kategori->kode_kategori;
+        $requiresMinat = in_array($kategoriKode, ['ASESMEN', 'DISK'], true);
+
+        if ($requiresMinat) {
+            $rules['minatBidangId'] = 'required|exists:minat_bidang,id';
+        }
+
         if ($this->type === 'Pilihan Ganda') {
             $rules['options'] = 'required|array|min:2';
             $rules['options.*.label'] = 'required|string';
@@ -109,10 +125,19 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         }
         
         $this->validate($rules);
-        
+
         // Generate kode_pertanyaan
-        $kategori = KategoriPertanyaan::findOrFail($this->kategoriId);
-        $kodePrefix = $kategori->kode_kategori;
+        $minatBidang = $this->minatBidangId
+            ? MinatBidang::find($this->minatBidangId)
+            : null;
+
+        if ($requiresMinat && $minatBidang) {
+            // Contoh: ASESMEN_RPL_01 atau DISK_RPL_01
+            $kodePrefix = $kategoriKode . '_' . $minatBidang->kode_bidang;
+        } else {
+            // Contoh: UMUM_xx atau MINAT_xx (tanpa minat spesifik)
+            $kodePrefix = $kategoriKode;
+        }
         
         if ($this->editing) {
             $question = Pertanyaan::findOrFail($this->id);
@@ -134,6 +159,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         // Create or update question
         $questionData = [
             'kategori_id' => $this->kategoriId,
+            'minat_bidang_id' => $this->minatBidangId,
             'kode_pertanyaan' => $kodePertanyaan,
             'teks_pertanyaan' => $this->teksPertanyaan,
         ];
@@ -399,6 +425,23 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                                     @endforeach
                                 </select>
                                 @error('kategoriId') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Minat Bidang (opsional / wajib untuk kategori tertentu) -->
+                            <div>
+                                <label for="minatBidangId" class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
+                                    Minat Bidang
+                                    <span class="text-xs font-normal text-gray-400 dark:text-neutral-500">(wajib untuk ASESMEN &amp; DISK)</span>
+                                </label>
+                                <select id="minatBidangId"
+                                        wire:model="minatBidangId"
+                                        class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-3 transition-colors">
+                                    <option value="">Pilih Minat Bidang (opsional)</option>
+                                    @foreach($this->minatBidangs as $minat)
+                                        <option value="{{ $minat->id }}">{{ $minat->kode_bidang }} - {{ $minat->nama_bidang }}</option>
+                                    @endforeach
+                                </select>
+                                @error('minatBidangId') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
                             </div>
 
                             <!-- Type -->

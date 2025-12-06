@@ -4,15 +4,24 @@ namespace App\Services;
 
 use App\Models\AreaRiset;
 use App\Models\Konsultasi;
-use App\Models\MinatBidang;
 use App\Models\Rule;
+use App\Models\MinatBidang;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class RuleBasedService
 {
+    public function __construct(
+        protected ScoringService $scoringService,
+    ) {
+    }
+
+    /**
+     * Evaluasi konsultasi menggunakan rule-based engine baru berbasis skor.
+     */
     public function evaluate(Konsultasi $konsultasi): ?AreaRiset
     {
+        // 1. Build context dari jawaban konsultasi (minat, arketipe, skill per minat)
         $jawabanKonsultasi = $konsultasi->jawabanKonsultasis()
             ->with(['opsiJawaban.pertanyaan.kategori'])
             ->get();
@@ -20,46 +29,89 @@ class RuleBasedService
         $jawabanMap = $this->buildJawabanMap($jawabanKonsultasi);
         $context = $this->buildContext($jawabanMap);
 
-        $rules = Rule::active()
-            ->orderedByPriority()
-            ->with(['areaRiset'])
-            ->get();
+        // 2. Hitung skor & skill per minat (berdasarkan pertanyaan ASESMEN_...)
+        $perBidang = $this->resolveBidangScoresAndSkills($jawabanMap);
+        $scoresPerBidang = $perBidang['scores'];
+        $skillsPerBidang = $perBidang['skills'];
 
+        // 3. Tentukan minat/bidang dominan (berdasarkan skor asesmen tertinggi)
+        $dominantBidang = null;
+        $dominantScore = null;
+
+        if (!empty($scoresPerBidang)) {
+            arsort($scoresPerBidang);
+            $dominantBidang = array_key_first($scoresPerBidang);
+            $dominantScore = $scoresPerBidang[$dominantBidang];
+        }
+
+        // Jika tidak ada data asesmen per-bidang, fallback ke skor total lama
+        if ($dominantBidang === null) {
+            $totalSkorMinat = $this->scoringService->calculateHasilMinat($konsultasi);
+            $dominantScore = (int) $totalSkorMinat;
+        }
+
+        // Skill level: gunakan skill per-bidang dominan jika ada, kalau tidak fallback ke skill global lama
+        if ($dominantBidang !== null && isset($skillsPerBidang[$dominantBidang])) {
+            $skillLevel = $skillsPerBidang[$dominantBidang];
+        } else {
+            $skillLevel = $this->resolveGlobalSkillLevel($context['skill_levels'] ?? []);
+        }
+
+        $archetype = $context['global_archetype'] ?? 'GENERAL';
+
+        // 4. Jika ada bidang dominan, batasi rules ke minat_bidang tersebut
+        $minatBidang = null;
+        if ($dominantBidang !== null) {
+            $minatBidang = MinatBidang::where('kode_bidang', $dominantBidang)->first();
+        }
+
+        $rulesQuery = Rule::active()
+            ->orderedByPriority()
+            ->with('areaRiset')
+            ->where('engine_type', 'rule_based')
+            ->where('min_score', '<=', (int) $dominantScore)
+            ->where('max_score', '>=', (int) $dominantScore)
+            ->where('min_skill_level', '<=', $skillLevel)
+            ->where(function ($query) use ($archetype) {
+                $query->whereNull('allowed_archetypes')
+                    ->orWhereJsonContains('allowed_archetypes', $archetype);
+            });
+
+        if ($minatBidang) {
+            $rulesQuery->where('minat_bidang_id', $minatBidang->id);
+        }
+
+        $rules = $rulesQuery->get();
+
+        if ($rules->isEmpty()) {
+            return null;
+        }
+
+        // 5. Hitung skor efektif per area_riset berdasarkan skor_boost & prioritas
         $areaScores = [];
-        $minatScores = [];
 
         foreach ($rules as $rule) {
-            $matrix = $rule->kondisi['matrix'] ?? null;
-
-            if ($matrix) {
-                if ($this->matchMatrixRule($matrix, $context)) {
-                    $score = $this->scoreMatrixRule($matrix, $context, $rule);
-                    $areaScores[$rule->area_riset_id] = ($areaScores[$rule->area_riset_id] ?? 0) + $score;
-                }
+            if (!$rule->area_riset_id) {
                 continue;
             }
 
-            if ($this->evaluateLegacyRule($rule, $jawabanMap)) {
-                $this->executeAction($rule, $areaScores, $minatScores);
-            }
+            $boost = $rule->aksi['skor_boost'] ?? 10;
+            // Prioritas lebih kecil = lebih penting
+            $priorityBonus = max(0, 20 - (int) $rule->prioritas);
+
+            $areaScores[$rule->area_riset_id] = ($areaScores[$rule->area_riset_id] ?? 0)
+                + $boost
+                + $priorityBonus;
         }
 
-        if (!empty($areaScores)) {
-            arsort($areaScores);
-            $areaId = array_key_first($areaScores);
-            return AreaRiset::find($areaId);
+        if (empty($areaScores)) {
+            return null;
         }
 
-        if (!empty($minatScores)) {
-            arsort($minatScores);
-            $minatId = array_key_first($minatScores);
-            $minatBidang = MinatBidang::find($minatId);
-            if ($minatBidang) {
-                return $this->selectAreaByMinat($minatBidang->kode_bidang, $context);
-            }
-        }
+        arsort($areaScores);
+        $areaId = array_key_first($areaScores);
 
-        return $this->fallbackArea($context);
+        return AreaRiset::find($areaId);
     }
 
     private function buildJawabanMap(Collection $jawabanKonsultasi): array
@@ -96,6 +148,23 @@ class RuleBasedService
             'discriminator' => $this->resolveDiscriminator($jawabanMap),
             'skill_levels' => $this->resolveSkillLevels($jawabanMap),
         ];
+    }
+
+    /**
+     * Hitung satu angka skill level global user dari skill per minat.
+     * Saat ini menggunakan nilai maksimum agar rule level tinggi hanya match
+     * jika user punya kemampuan cukup di salah satu minat.
+     */
+    private function resolveGlobalSkillLevel(array $skillLevelsPerMinat): int
+    {
+        if (empty($skillLevelsPerMinat)) {
+            return 1;
+        }
+
+        $max = max($skillLevelsPerMinat);
+
+        // Normalisasi ke skala 1-4
+        return (int) max(1, min(4, round($max)));
     }
 
     private function resolveArchetype(array $jawabanMap): ?string
@@ -187,148 +256,56 @@ class RuleBasedService
         }, $skill);
     }
 
-    private function matchMatrixRule(array $matrix, array $context): bool
+    /**
+     * Hitung skor total & skill level per-bidang (per minat) dari pertanyaan ASESMEN_...
+     * - skor: jumlah nilai Likert (mis. 1–5) untuk semua pertanyaan ASESMEN di bidang tersebut
+     * - skill: rata-rata nilai, dinormalisasi ke skala 1–4 agar sejalan dengan kolom min_skill_level
+     */
+    private function resolveBidangScoresAndSkills(array $jawabanMap): array
     {
-        $minat = $matrix['minat'] ?? null;
-        if ($minat) {
-            if (!$context['selected_minat'] || $minat !== $context['selected_minat']) {
-                return false;
+        $perBidangNilai = [];
+
+        foreach ($jawabanMap as $kodePertanyaan => $jawaban) {
+            if (!Str::startsWith($kodePertanyaan, 'ASESMEN_')) {
+                continue;
             }
-        }
 
-        $archetypes = $matrix['archetypes'] ?? ['GENERAL'];
-        $preferred = $context['discriminator'][$minat] ?? $context['global_archetype'] ?? 'GENERAL';
-
-        if (!in_array($preferred, $archetypes, true)) {
-            return false;
-        }
-
-        $skillThreshold = $matrix['skill_threshold'] ?? 2;
-        $skillActual = $context['skill_levels'][$minat] ?? 0;
-
-        if ($matrix['prefer_low_skill'] ?? false) {
-            return $skillActual <= max(2, $skillThreshold);
-        }
-
-        return $skillActual >= $skillThreshold;
-    }
-
-    private function scoreMatrixRule(array $matrix, array $context, Rule $rule): int
-    {
-        $minat = $matrix['minat'] ?? $context['selected_minat'];
-        $skillActual = $context['skill_levels'][$minat] ?? 0;
-        $threshold = $matrix['skill_threshold'] ?? 2;
-        $preferred = $context['discriminator'][$minat] ?? $context['global_archetype'] ?? 'GENERAL';
-
-        $bonus = max(0, ($skillActual - $threshold) * 2);
-        $archetypeBonus = in_array($preferred, $matrix['archetypes'] ?? [], true) ? 3 : 0;
-
-        return ($rule->aksi['skor_boost'] ?? 10) + $bonus + $archetypeBonus;
-    }
-
-    private function evaluateLegacyRule(Rule $rule, array $jawabanMap): bool
-    {
-        $kondisi = $rule->kondisi;
-
-        if (!isset($kondisi['conditions']) || !is_array($kondisi['conditions'])) {
-            return false;
-        }
-
-        foreach ($kondisi['conditions'] as $condition) {
-            if (!$this->evaluateCondition($condition, $jawabanMap)) {
-                return false;
+            $parts = explode('_', $kodePertanyaan);
+            $minatKode = $parts[1] ?? null;
+            if (!$minatKode) {
+                continue;
             }
+
+            $nilai = $jawaban['_max_nilai'] ?? null;
+            if ($nilai === null) {
+                continue;
+            }
+
+            $perBidangNilai[$minatKode][] = $nilai;
         }
 
-        return true;
+        $scores = [];
+        $skills = [];
+
+        foreach ($perBidangNilai as $kodeBidang => $nilaiList) {
+            if (empty($nilaiList)) {
+                continue;
+            }
+
+            $total = array_sum($nilaiList);
+            $avg = $total / count($nilaiList);
+
+            $scores[$kodeBidang] = $total;
+            // Normalisasi skill ke skala 1-4, supaya cocok dengan kolom min_skill_level
+            $skills[$kodeBidang] = (int) max(1, min(4, round($avg)));
+        }
+
+        return [
+            'scores' => $scores,
+            'skills' => $skills,
+        ];
     }
 
-    private function evaluateCondition(array $condition, array $jawabanMap): bool
-    {
-        $kodePertanyaan = $condition['pertanyaan'] ?? null;
-        $operator = $condition['operator'] ?? '==';
-
-        if (!$kodePertanyaan || !isset($jawabanMap[$kodePertanyaan])) {
-            return false;
-        }
-
-        $pertanyaanJawaban = $jawabanMap[$kodePertanyaan];
-
-        if (isset($condition['jawaban'])) {
-            $kodeJawaban = $condition['jawaban'];
-            return isset($pertanyaanJawaban[$kodeJawaban]);
-        }
-
-        if (isset($condition['nilai'])) {
-            $targetNilai = (int) $condition['nilai'];
-            $maxNilai = $pertanyaanJawaban['_max_nilai'] ?? 0;
-
-            return match ($operator) {
-                '>=' => $maxNilai >= $targetNilai,
-                '>' => $maxNilai > $targetNilai,
-                '<=' => $maxNilai <= $targetNilai,
-                '<' => $maxNilai < $targetNilai,
-                '==' => $maxNilai == $targetNilai,
-                default => false,
-            };
-        }
-
-        return false;
-    }
-
-    private function executeAction(Rule $rule, array &$skorAreaRiset, array &$skorMinatBidang): void
-    {
-        $aksi = $rule->aksi;
-
-        if (isset($aksi['area_riset_id'])) {
-            $areaRisetId = $aksi['area_riset_id'];
-            $skorBoost = $aksi['skor_boost'] ?? 10;
-            $skorAreaRiset[$areaRisetId] = ($skorAreaRiset[$areaRisetId] ?? 0) + $skorBoost;
-        }
-
-        if (isset($aksi['minat_bidang_id'])) {
-            $minatBidangId = $aksi['minat_bidang_id'];
-            $skorBoost = $aksi['skor_boost'] ?? 5;
-            $skorMinatBidang[$minatBidangId] = ($skorMinatBidang[$minatBidangId] ?? 0) + $skorBoost;
-        }
-
-        if ($rule->area_riset_id) {
-            $skorAreaRiset[$rule->area_riset_id] = ($skorAreaRiset[$rule->area_riset_id] ?? 0) + 15;
-        }
-
-        if ($rule->minat_bidang_id) {
-            $skorMinatBidang[$rule->minat_bidang_id] = ($skorMinatBidang[$rule->minat_bidang_id] ?? 0) + 10;
-        }
-    }
-
-    private function selectAreaByMinat(string $kodeMinat, array $context): ?AreaRiset
-    {
-        $skill = $context['skill_levels'][$kodeMinat] ?? 0;
-        $preferredArchetype = $context['discriminator'][$kodeMinat] ?? $context['global_archetype'] ?? 'GENERAL';
-
-        $areas = AreaRiset::whereHas('minatBidangs', function ($query) use ($kodeMinat) {
-            $query->where('kode_bidang', $kodeMinat);
-        })->orderBy('level_kesulitan')->get();
-
-        if ($areas->isEmpty()) {
-            return null;
-        }
-
-        $matched = $areas->first(function (AreaRiset $area) use ($skill, $preferredArchetype) {
-            return $area->level_kesulitan <= max(1, round($skill)) &&
-                ($area->target_arketipe === $preferredArchetype || $area->target_arketipe === 'GENERAL');
-        });
-
-        return $matched ?: $areas->first();
-    }
-
-    private function fallbackArea(array $context): ?AreaRiset
-    {
-        $minat = $context['selected_minat'];
-        if (!$minat) {
-            return null;
-        }
-
-        return $this->selectAreaByMinat($minat, $context);
-    }
+    // Legacy matrix / kondisi-based methods telah dihapus karena digantikan
+    // oleh engine berbasis skor & kolom eksplisit.
 }

@@ -16,14 +16,25 @@ return new class extends Migration
             $table->string('kode_rule')->unique()->comment('Kode unik rule, contoh: RULE_RPL_01');
             $table->string('nama_rule')->comment('Nama rule untuk identifikasi');
             $table->text('deskripsi')->nullable()->comment('Deskripsi rule');
-            
-            // Kondisi IF (dalam format JSON untuk fleksibilitas)
-            // Contoh: {"conditions": [{"pertanyaan": "MINAT_CREATOR_01", "jawaban": "MINAT_WEB", "operator": "=="}, {"pertanyaan": "ASESMEN_WEB_01", "nilai": 4, "operator": ">="}]}
-            $table->json('kondisi')->comment('Kondisi IF dalam format JSON');
-            
-            // Aksi THEN (dalam format JSON)
-            // Contoh: {"minat_bidang": "RPL", "area_riset": "PENG-01", "skor_boost": 10}
+
+            // Aksi THEN (dalam format JSON), tetap dipertahankan untuk fleksibilitas skor_boost, dll.
             $table->json('aksi')->comment('Aksi THEN dalam format JSON');
+
+            // Rentang skor total minat yang didukung rule ini
+            $table->integer('min_score')->default(0)->comment('Batas bawah skor total minat');
+            $table->integer('max_score')->default(100)->comment('Batas atas skor total minat');
+
+            // Level skill minimum yang disyaratkan (1-4)
+            $table->tinyInteger('min_skill_level')->default(1)->comment('Level skill minimum yang dibutuhkan');
+
+            // Daftar arketipe yang diizinkan, contoh: ["CREATOR", "GENERAL"]
+            $table->json('allowed_archetypes')->nullable()->comment('Arketipe pengguna yang diizinkan');
+
+            // Jenis engine yang menggunakan rule ini: rule_based / decision_tree
+            $table->string('engine_type')->default('rule_based')->comment('Tipe engine: rule_based atau decision_tree');
+
+            // Konfigurasi khusus Decision Tree (pengganti kondisi JSON lama untuk DT)
+            $table->json('dt_config')->nullable()->comment('Konfigurasi khusus untuk engine decision_tree');
             
             // Relasi ke minat_bidang dan area_riset (optional, untuk referensi)
             $table->foreignId('minat_bidang_id')->nullable()->constrained('minat_bidang')->nullOnDelete();
@@ -34,10 +45,11 @@ return new class extends Migration
             
             // Status aktif
             $table->boolean('is_active')->default(true);
-            
+
             $table->timestamps();
-            
+
             $table->index(['is_active', 'prioritas']);
+            $table->index(['min_score', 'max_score']);
         });
     }
 

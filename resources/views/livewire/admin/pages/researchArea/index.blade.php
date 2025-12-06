@@ -11,6 +11,9 @@ use Livewire\Attributes\Layout;
 new #[Layout('components.layouts.app-admin')] class extends Component {
     use WithPagination;
 
+    public $search = '';
+    public $filterMinat = null;
+    public $filterTag = null;
     public bool $showModal = false;
     public bool $editing = false;
     public ?int $id = null;
@@ -24,12 +27,45 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public int $levelKesulitan = 2;
     public array $selectedMinatBidang = [];
     public array $selectedTags = [];
+    public $newTagName = '';
+    public $newTagType = 'TEKNOLOGI';
     public bool $showDeleteModal = false;
     public ?int $deleteId = null;
 
     public function getAreaRisetsProperty()
     {
-        return AreaRiset::with(['minatBidangs', 'tags'])
+        $query = AreaRiset::with(['minatBidangs', 'tags']);
+
+        if ($this->search !== '') {
+            $search = '%' . $this->search . '%';
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_area', 'like', $search)
+                  ->orWhere('nama_area', 'like', $search)
+                  ->orWhereHas('minatBidangs', function ($sub) use ($search) {
+                      $sub->where('nama_bidang', 'like', $search)
+                          ->orWhere('kode_bidang', 'like', $search);
+                  })
+                  ->orWhereHas('tags', function ($sub) use ($search) {
+                      $sub->where('nama_tag', 'like', $search);
+                  });
+            });
+        }
+
+        if ($this->filterMinat) {
+            $filterMinat = $this->filterMinat;
+            $query->whereHas('minatBidangs', function ($q) use ($filterMinat) {
+                $q->where('minat_bidang.id', $filterMinat);
+            });
+        }
+
+        if ($this->filterTag) {
+            $filterTag = $this->filterTag;
+            $query->whereHas('tags', function ($q) use ($filterTag) {
+                $q->where('tags.id', $filterTag);
+            });
+        }
+
+        return $query
             ->orderBy('created_at', 'desc')
             ->paginate(10);
     }
@@ -42,6 +78,21 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public function getTagsProperty()
     {
         return Tag::orderBy('nama_tag')->get();
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterMinat(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterTag(): void
+    {
+        $this->resetPage();
     }
 
     public function openCreateModal(): void
@@ -90,6 +141,29 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         } else {
             $this->selectedTags[] = $tagId;
         }
+    }
+
+    public function createTagInline(): void
+    {
+        $this->validate([
+            'newTagName' => 'required|string|max:255',
+            'newTagType' => 'required|in:TEKNOLOGI,METODE',
+        ]);
+
+        $tag = Tag::firstOrCreate(
+            [
+                'nama_tag' => $this->newTagName,
+                'tipe' => $this->newTagType,
+            ]
+        );
+
+        if (!in_array($tag->id, $this->selectedTags, true)) {
+            $this->selectedTags[] = $tag->id;
+        }
+
+        // Reset input agar siap menambah lagi
+        $this->newTagName = '';
+        $this->newTagType = 'TEKNOLOGI';
     }
 
     public function save(): void
@@ -188,6 +262,54 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                     Tambah Area Riset
                 </span>
             </button>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-neutral-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <!-- Search -->
+                <div class="col-span-1 md:col-span-1">
+                    <label class="sr-only" for="searchArea">Cari Area</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
+                            </svg>
+                        </span>
+                        <input id="searchArea"
+                               type="text"
+                               wire:model.live.debounce.300ms="search"
+                               placeholder="Cari berdasarkan kode, nama area, minat bidang, atau tag..."
+                               class="block w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-colors">
+                    </div>
+                </div>
+
+                <!-- Filter Minat Bidang -->
+                <div class="col-span-1">
+                    <label class="sr-only" for="filterMinat">Filter Minat Bidang</label>
+                    <select id="filterMinat"
+                            wire:model.live="filterMinat"
+                            class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm text-gray-900 dark:text-white px-4 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-colors">
+                        <option value="">Semua Minat Bidang</option>
+                        @foreach($this->minatBidangs as $minat)
+                            <option value="{{ $minat->id }}">{{ $minat->kode_bidang }} - {{ $minat->nama_bidang }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filter Tag -->
+                <div class="col-span-1">
+                    <label class="sr-only" for="filterTag">Filter Tag</label>
+                    <select id="filterTag"
+                            wire:model.live="filterTag"
+                            class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm text-gray-900 dark:text-white px-4 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-colors">
+                        <option value="">Semua Tag</option>
+                        @foreach($this->tags as $tag)
+                            <option value="{{ $tag->id }}">{{ $tag->nama_tag }} ({{ $tag->tipe }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
         </div>
 
         <!-- Flash Message -->
@@ -442,7 +564,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                             <!-- Tags -->
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-3">Tags</label>
-                                <div class="border border-gray-300 dark:border-neutral-600 rounded-lg p-4 bg-gray-50 dark:bg-neutral-700/50 min-h-[120px]">
+                                <div class="border border-gray-300 dark:border-neutral-600 rounded-lg p-4 bg-gray-50 dark:bg-neutral-700/50 min-h-[120px] space-y-4">
                                     <div class="flex flex-wrap gap-2">
                                         @foreach($this->tags as $tag)
                                             <button type="button"
@@ -460,6 +582,32 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                                     @if($this->tags->isEmpty())
                                         <p class="text-sm text-gray-500 dark:text-neutral-400 text-center py-4">Belum ada tags. Buat tags terlebih dahulu di halaman Tags.</p>
                                     @endif
+
+                                    <!-- Inline new tag -->
+                                    <div class="border-t border-gray-200 dark:border-neutral-600 pt-4">
+                                        <h4 class="text-xs font-semibold text-gray-600 dark:text-neutral-300 uppercase tracking-wide mb-2">Tambah Tag Baru</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                            <div class="md:col-span-2">
+                                                <input type="text"
+                                                       wire:model="newTagName"
+                                                       placeholder="Nama tag baru..."
+                                                       class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-3 py-2 text-sm transition-colors">
+                                                @error('newTagName') <span class="mt-1 text-red-500 text-xs font-medium">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <select wire:model="newTagType"
+                                                        class="flex-1 rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-3 py-2 text-xs transition-colors">
+                                                    <option value="TEKNOLOGI">TEKNOLOGI</option>
+                                                    <option value="METODE">METODE</option>
+                                                </select>
+                                                <button type="button"
+                                                        wire:click="createTagInline"
+                                                        class="px-3 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">
+                                                    Tambah
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

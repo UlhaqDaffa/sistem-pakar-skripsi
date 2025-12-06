@@ -9,6 +9,8 @@ use Livewire\Attributes\Layout;
 new #[Layout('components.layouts.app-admin')] class extends Component {
     use WithPagination;
 
+    public $search = '';
+    public $filterTipe = '';
     public bool $showModal = false;
     public bool $editing = false;
     public ?int $id = null;
@@ -19,7 +21,27 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
 
     public function getTagsProperty()
     {
-        return Tag::orderBy('tipe')->orderBy('nama_tag')->paginate(10);
+        $query = Tag::query();
+
+        if ($this->filterTipe !== '') {
+            $query->where('tipe', $this->filterTipe);
+        }
+
+        if ($this->search !== '') {
+            $query->where('nama_tag', 'like', '%' . $this->search . '%');
+        }
+
+        return $query->orderBy('tipe')->orderBy('nama_tag')->paginate(10);
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterTipe(): void
+    {
+        $this->resetPage();
     }
 
     public function openCreateModal(): void
@@ -122,6 +144,37 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
                     Tambah Tag
                 </span>
             </button>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-neutral-700">
+            <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+                <div class="flex-1">
+                    <label class="sr-only" for="searchTags">Cari Tag</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
+                            </svg>
+                        </span>
+                        <input id="searchTags"
+                               type="text"
+                               wire:model.live.debounce.300ms="search"
+                               placeholder="Cari tag berdasarkan nama..."
+                               class="block w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-colors">
+                    </div>
+                </div>
+                <div class="w-full md:w-56">
+                    <label class="sr-only" for="filterTipe">Filter Tipe</label>
+                    <select id="filterTipe"
+                            wire:model.live="filterTipe"
+                            class="block w-full rounded-lg border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm text-gray-900 dark:text-white px-4 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-colors">
+                        <option value="">Semua Tipe</option>
+                        <option value="TEKNOLOGI">TEKNOLOGI</option>
+                        <option value="METODE">METODE</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <!-- Flash Message -->

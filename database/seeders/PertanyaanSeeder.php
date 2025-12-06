@@ -8,6 +8,9 @@ use App\Models\KategoriPertanyaan;
 use App\Models\Pertanyaan;
 use App\Models\OpsiJawabanTemplate;
 use App\Models\OpsiJawabanTemplateItem;
+use App\Models\MinatBidang;
+use App\Models\OpsiJawaban;
+use Database\Seeders\MinatBidangSeeder;
 
 class PertanyaanSeeder extends Seeder
 {
@@ -16,10 +19,21 @@ class PertanyaanSeeder extends Seeder
      */
     public function run(): void
     {
+        // Pastikan data MinatBidang tersedia ketika seeder ini dijalankan terpisah
+        if (MinatBidang::count() === 0) {
+            $this->call(MinatBidangSeeder::class);
+        }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // Hapus relasi & data turunan terlebih dahulu
         DB::table('pertanyaan_opsi_jawaban_template')->delete();
-        Pertanyaan::truncate();
+        OpsiJawaban::truncate();
         OpsiJawabanTemplateItem::truncate();
         OpsiJawabanTemplate::truncate();
+        Pertanyaan::truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $umum = KategoriPertanyaan::where('kode_kategori', 'UMUM')->firstOrFail();
         $minat = KategoriPertanyaan::where('kode_kategori', 'MINAT')->firstOrFail();
@@ -238,8 +252,11 @@ class PertanyaanSeeder extends Seeder
         ];
 
         foreach ($questions as $kodeMinat => $text) {
+            $minat = MinatBidang::where('kode_bidang', $kodeMinat)->first();
+
             $pertanyaan = Pertanyaan::create([
                 'kategori_id' => $kategori->id,
+                'minat_bidang_id' => $minat?->id,
                 'kode_pertanyaan' => 'DISK_' . $kodeMinat . '_01',
                 'teks_pertanyaan' => $text,
             ]);
@@ -333,9 +350,17 @@ class PertanyaanSeeder extends Seeder
         ];
 
         foreach ($asesmenQuestions as $kodeMinat => $questions) {
+            $minat = MinatBidang::where('kode_bidang', $kodeMinat)->first();
+
             foreach ($questions as $index => $question) {
                 $kode = 'ASESMEN_' . $kodeMinat . '_' . str_pad($index + 1, 2, '0', STR_PAD_LEFT);
-                $createQuestion($kode, $question);
+                $pertanyaan = Pertanyaan::create([
+                    'kategori_id' => $kategoriAsesmen->id,
+                    'minat_bidang_id' => $minat?->id,
+                    'kode_pertanyaan' => $kode,
+                    'teks_pertanyaan' => $question,
+                ]);
+                $pertanyaan->opsiJawabanTemplate()->attach($templateLikert->id);
             }
         }
     }

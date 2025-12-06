@@ -151,16 +151,9 @@ class KonsultasiService
             // 1. Evaluasi menggunakan Rule-Based System (prioritas utama)
             $ruleBasedService = app(\App\Services\RuleBasedService::class);
             $hasilRuleBased = $ruleBasedService->evaluate($konsultasi);
-            
-            // 2. Hitung Hasil_Minat menggunakan ScoringService (sebagai fallback atau validasi)
-            $scoringService = app(\App\Services\ScoringService::class);
-            $hasilMinat = $scoringService->calculateHasilMinat($konsultasi);
-            
-            // Prioritas: Gunakan hasil Rule-Based jika ada, jika tidak gunakan ScoringService
-            $hasilMinatFinal = $hasilRuleBased ?? $hasilMinat;
-            
-            if ($hasilMinatFinal) {
-                $konsultasi->hasil_minat_id = $hasilMinatFinal->id;
+
+            if ($hasilRuleBased) {
+                $konsultasi->hasil_minat_id = $hasilRuleBased->id;
             }
 
             // 3. Jika ada nilai mata kuliah, panggil DecisionTreeService untuk Hasil_Akademik
@@ -176,14 +169,13 @@ class KonsultasiService
                 }
             }
 
-            // 4. Rekonsiliasi Hasil_Minat dan Hasil_Akademik
-            if ($hasilMinatFinal) {
-                $rekonsiliasiService = app(\App\Services\RekonsiliasiService::class);
-                $areaRisetFinal = $rekonsiliasiService->rekonsiliasi($hasilMinatFinal, $hasilAkademik);
-                
-                if ($areaRisetFinal) {
-                    $konsultasi->area_riset_final_id = $areaRisetFinal->id;
-                }
+            // 4. Tentukan area_riset_final:
+            //    - Utamakan hasil Rule-Based
+            //    - Jika tidak ada, gunakan hasil Decision Tree (akademik) jika tersedia
+            $areaRisetFinal = $hasilRuleBased ?? $hasilAkademik;
+
+            if ($areaRisetFinal) {
+                $konsultasi->area_riset_final_id = $areaRisetFinal->id;
             }
 
             // 5. Update status menjadi selesai

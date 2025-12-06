@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\RulesSeeder;
 use Database\Seeders\UsersSeeder;
 use Database\Seeders\KategoriPertanyaanSeeder;
 use Database\Seeders\PertanyaanSeeder;

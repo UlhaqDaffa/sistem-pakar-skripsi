@@ -23,11 +23,11 @@ class DecisionTreeProcessor
         $level = $this->mapSkillToLevel($skillScore);
 
         $rule = Rule::active()
-            ->where('kondisi->engine', 'decision_tree')
-            ->where('kondisi->bidang_kode', $kodeAreaApi)
+            ->where('engine_type', 'decision_tree')
+            ->where('dt_config->bidang_kode', $kodeAreaApi)
             ->where(function ($query) use ($level) {
-                $query->where('kondisi->min_level', '<=', $level)
-                    ->where('kondisi->max_level', '>=', $level);
+                $query->where('dt_config->min_level', '<=', $level)
+                    ->where('dt_config->max_level', '>=', $level);
             })
             ->with('areaRiset')
             ->orderedByPriority()

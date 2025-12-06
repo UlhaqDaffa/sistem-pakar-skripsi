@@ -57,15 +57,19 @@ class DecisionTreeRulesSeeder extends Seeder
                     [
                         'nama_rule' => "Decision Tree {$kodeBidang} - Level {$level}",
                         'deskripsi' => "Mapping hasil {$kodeBidang} dengan level {$level} ke area riset spesifik",
-                        'kondisi' => [
+                        'aksi' => [
                             'engine' => 'decision_tree',
+                        ],
+                        'dt_config' => [
                             'bidang_kode' => strtoupper($kodeBidang),
                             'min_level' => $level,
                             'max_level' => $level,
                         ],
-                        'aksi' => [
-                            'engine' => 'decision_tree',
-                        ],
+                        'engine_type' => 'decision_tree',
+                        'min_score' => 0,
+                        'max_score' => 1000,
+                        'min_skill_level' => 1,
+                        'allowed_archetypes' => null,
                         'minat_bidang_id' => $minatBidang->id,
                         'area_riset_id' => $areaRiset->id,
                         'prioritas' => 10 + $level,
