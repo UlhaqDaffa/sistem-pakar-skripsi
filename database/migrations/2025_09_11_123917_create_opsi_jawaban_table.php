@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('opsi_jawaban', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
-            $table->string('kode_jawaban');
-            $table->string('teks_jawaban');
+            $table->string('kode_jawaban',32);
+            $table->string('teks_jawaban', 100);
             $table->integer('nilai')->default(0);
             $table->timestamps();
 

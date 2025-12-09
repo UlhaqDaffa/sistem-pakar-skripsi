@@ -22,6 +22,7 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     public array $options = [['label' => '', 'value' => 0]];
     public bool $showDeleteModal = false;
     public ?int $deleteId = null;
+    public string $search = '';
 
     public function getQuestionsProperty()
     {
@@ -29,6 +30,13 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
         
         if ($this->filterKategori) {
             $query->where('kategori_id', $this->filterKategori);
+        }
+        
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('kode_pertanyaan', 'like', '%' . $this->search . '%')
+                  ->orWhere('teks_pertanyaan', 'like', '%' . $this->search . '%');
+            });
         }
         
         return $query->orderBy('created_at', 'desc')->paginate(10);
@@ -223,6 +231,11 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
     {
         $this->resetPage();
     }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
 };
 
 ?>
@@ -253,18 +266,31 @@ new #[Layout('components.layouts.app-admin')] class extends Component {
             </div>
         @endif
 
-        <!-- Filter -->
+        <!-- Filter & Search -->
         <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-5 border border-gray-200 dark:border-neutral-700">
-            <div class="flex items-center gap-4">
-                <label for="filterKategori" class="text-sm font-semibold text-gray-700 dark:text-neutral-300">Filter Kategori:</label>
-                <select id="filterKategori"
-                        wire:model.live="filterKategori"
-                        class="block w-64 rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-2.5 transition-colors">
-                    <option value="">Semua Kategori</option>
-                    @foreach($this->kategoris as $kategori)
-                        <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
-                    @endforeach
-                </select>
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex items-center gap-4 flex-1">
+                    <label for="filterKategori" class="text-sm font-semibold text-gray-700 dark:text-neutral-300 whitespace-nowrap">Filter Kategori:</label>
+                    <select id="filterKategori"
+                            wire:model.live="filterKategori"
+                            class="block w-full md:w-64 rounded-lg border-gray-300 dark:border-neutral-600 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:bg-neutral-700 dark:text-white px-4 py-2.5 transition-colors">
+                        <option value="">Semua Kategori</option>
+                        @foreach($this->kategoris as $kategori)
+                            <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="relative flex-1 md:max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           wire:model.live.debounce.300ms="search"
+                           placeholder="Cari pertanyaan..."
+                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
             </div>
         </div>
 

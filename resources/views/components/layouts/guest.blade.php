@@ -20,10 +20,30 @@
                 </a>
 
                 <div class="hidden md:flex items-center space-x-10 mr-2 ml-22 pr-24">
-                    <a href="#" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-bold">Home</a>
-                    <a href="#" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-bold">Fitur</a>
-                    <a href="#" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-bold">Privasi</a>
-                    <a href="#" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-bold">Tentang</a>
+                    <a href="{{ route('home') }}" class="transition-colors font-bold {{ request()->routeIs('home') ? 'text-indigo-600 dark:text-indigo-400' : 'hover:text-indigo-600 dark:hover:text-indigo-400' }}">
+                        Home
+                        @if(request()->routeIs('home'))
+                            <span class="block h-0.5 bg-indigo-600 dark:bg-indigo-400 mt-1"></span>
+                        @endif
+                    </a>
+                    <a href="{{ route('feature') }}" class="transition-colors font-bold {{ request()->routeIs('feature') ? 'text-indigo-600 dark:text-indigo-400' : 'hover:text-indigo-600 dark:hover:text-indigo-400' }}">
+                        Fitur
+                        @if(request()->routeIs('feature'))
+                            <span class="block h-0.5 bg-indigo-600 dark:bg-indigo-400 mt-1"></span>
+                        @endif
+                    </a>
+                    <a href="{{ route('privacy') }}" class="transition-colors font-bold {{ request()->routeIs('privacy') ? 'text-indigo-600 dark:text-indigo-400' : 'hover:text-indigo-600 dark:hover:text-indigo-400' }}">
+                        Privasi
+                        @if(request()->routeIs('privacy'))
+                            <span class="block h-0.5 bg-indigo-600 dark:bg-indigo-400 mt-1"></span>
+                        @endif
+                    </a>
+                    <a href="{{ route('about') }}" class="transition-colors font-bold {{ request()->routeIs('about') ? 'text-indigo-600 dark:text-indigo-400' : 'hover:text-indigo-600 dark:hover:text-indigo-400' }}">
+                        Tentang
+                        @if(request()->routeIs('about'))
+                            <span class="block h-0.5 bg-indigo-600 dark:bg-indigo-400 mt-1"></span>
+                        @endif
+                    </a>
                 </div>
 
                 <div class="flex items-center space-x-2">

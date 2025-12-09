@@ -7,6 +7,18 @@ Route::get('/', function () {
     return view('index');
 })->name('home');
 
+Route::get('/fitur', function () {
+    return view('pages.feature');
+})->name('feature');
+
+Route::get('/privasi', function () {
+    return view('pages.privacy');
+})->name('privacy');
+
+Route::get('/tentang', function () {
+    return view('pages.about');
+})->name('about');
+
 Volt::route('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

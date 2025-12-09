@@ -155,7 +155,7 @@ mount(function () {
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Student Name</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Date</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Result</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Action</th>
+                    
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-neutral-800 divide-y divide-gray-200 dark:divide-neutral-700">
@@ -169,17 +169,6 @@ mount(function () {
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900 dark:text-white">{{ $consultation->areaRisetFinal->nama_area ?? 'Belum selesai' }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                @if($consultation->status === 'selesai')
-                                    <a href="{{ route('admin.riwayat-konsultasi.index') }}?id={{ $consultation->id }}" 
-                                       class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" 
-                                       wire:navigate>
-                                        Detail
-                                    </a>
-                                @else
-                                    <span class="text-gray-400 dark:text-neutral-500">-</span>
-                                @endif
                             </td>
                         </tr>
                     @empty

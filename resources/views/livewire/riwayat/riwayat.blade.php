@@ -13,7 +13,7 @@ new class extends Component {
             ->where('status', 'selesai')
             ->with(['areaRisetFinal', 'hasilMinat', 'hasilAkademik'])
             ->latest()
-            ->paginate(10);
+            ->paginate(6);
     }
 
     public function viewDetails(int $consultationId): void
@@ -34,7 +34,7 @@ new class extends Component {
         </div>
 
         <!-- Consultation List -->
-        <div class="flex-grow overflow-y-auto">
+        <div class="flex-grow overflow-y-auto mb-4">
             @if($this->consultations->count() > 0)
                 <ul role="list" class="divide-y divide-gray-200 dark:divide-neutral-700">
                     @foreach($this->consultations as $consultation)
@@ -68,10 +68,6 @@ new class extends Component {
                         </li>
                     @endforeach
                 </ul>
-                <!-- Pagination -->
-                <div class="mt-6">
-                    {{ $this->consultations->links() }}
-                </div>
             @else
                 <div class="flex flex-col items-center justify-center text-center h-full">
                     <svg class="h-16 w-16 text-gray-400 dark:text-neutral-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,5 +80,12 @@ new class extends Component {
                 </div>
             @endif
         </div>
+        
+        <!-- Pagination - Right Bottom -->
+        @if($this->consultations->count() > 0 && $this->consultations->hasPages())
+            <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700 flex-shrink-0">
+                {{ $this->consultations->links() }}
+            </div>
+        @endif
     </div>
 </div>
