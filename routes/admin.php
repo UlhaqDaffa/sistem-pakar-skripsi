@@ -23,7 +23,8 @@ Route::middleware(['auth', 'admin'])->group(function() {
     Volt::route('pola-judul', 'admin.pages.titlePattern.index')->name('pola-judul.index');
 
     // System
-    Volt::route('riwayat-konsultasi', 'admin.pages.riwayat-konsultasi.index')->name('riwayat-konsultasi.index');
+    Volt::route('riwayat-konsultasi', 'admin.pages.histori.index')->name('riwayat-konsultasi.index');
+    Volt::route('riwayat-konsultasi/{consultation}', 'admin.pages.histori.show')->name('riwayat-konsultasi.show');
     Volt::route('training-model', 'admin.pages.training-model.index')->name('training-model.index');
 
     // Settings

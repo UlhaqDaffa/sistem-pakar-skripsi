@@ -16,7 +16,6 @@ state([
     'topRecommendedTopic' => 'Belum ada',
     'recentConsultations' => [],
     'chartData' => [],
-    'showAllConsultations' => false,
 ]);
 
 mount(function () {
@@ -39,10 +38,10 @@ mount(function () {
         $this->topRecommendedTopic = 'Belum ada';
     }
     
-    // Recent Consultations
+    // Recent Consultations (limit 8)
     $this->recentConsultations = Konsultasi::with(['user', 'areaRisetFinal'])
         ->latest()
-        ->take(5)
+        ->take(8)
         ->get();
     
     // Chart Data - Consultations per Month for current year
@@ -83,7 +82,7 @@ mount(function () {
                     </div>
                 </div>
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-500 dark:text-neutral-400">Total Students</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-neutral-400">Total Pengguna</p>
                     <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ $totalStudents }}</p>
                 </div>
             </div>
@@ -117,7 +116,7 @@ mount(function () {
                     </div>
                 </div>
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-500 dark:text-neutral-400">Top Recommended Topic</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-neutral-400">Top Topik Rekomendasi</p>
                     <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">{{ $topRecommendedTopic }}</p>
                 </div>
             </div>
@@ -134,7 +133,7 @@ mount(function () {
                     </div>
                 </div>
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-500 dark:text-neutral-400">Total Questions</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-neutral-400">Total Pertanyaan</p>
                     <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ $totalQuestions }}</p>
                 </div>
             </div>
@@ -145,21 +144,26 @@ mount(function () {
 
     <!-- Recent Activity Table -->
     <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-md border border-gray-200 dark:border-neutral-700 overflow-hidden">
-        <div class="p-6 border-b border-gray-200 dark:border-neutral-700">
+        <div class="p-6 border-b border-gray-200 dark:border-neutral-700 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas Terbaru</h3>
+            <a href="{{ route('admin.riwayat-konsultasi.index') }}" 
+               class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+               wire:navigate>
+                Lihat selengkapnya &rarr;
+            </a>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
                 <thead class="bg-gray-50 dark:bg-neutral-900">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Student Name</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Date</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Result</th>
-                    
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Nama Pengguna</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Tanggal</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Hasil</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider"></th>
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-neutral-800 divide-y divide-gray-200 dark:divide-neutral-700">
-                    @forelse(($showAllConsultations ? $recentConsultations : $recentConsultations->take(5)) as $consultation)
+                    @forelse($recentConsultations as $consultation)
                         <tr class="hover:bg-gray-50 dark:hover:bg-neutral-700/50">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $consultation->user->name ?? 'N/A' }}</div>
@@ -169,6 +173,13 @@ mount(function () {
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900 dark:text-white">{{ $consultation->areaRisetFinal->nama_area ?? 'Belum selesai' }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <a href="{{ route('admin.riwayat-konsultasi.show', $consultation->id) }}"
+                                   class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+                                   wire:navigate>
+                                    Detail
+                                </a>
                             </td>
                         </tr>
                     @empty
@@ -184,59 +195,8 @@ mount(function () {
                 </tbody>
             </table>
         </div>
-        @if($recentConsultations->count() > 5)
-            <div class="p-6 border-t border-gray-200 dark:border-neutral-700 flex justify-center">
-                <button wire:click="$set('showAllConsultations', !$showAllConsultations)" 
-                        class="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                    {{ $showAllConsultations ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lebih Banyak' }}
-                </button>
-            </div>
-        @endif
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const chartData = @json($chartData);
-        const ctx = document.getElementById('consultationsChart');
-        
-        if (ctx && typeof Chart !== 'undefined') {
-            const labels = Object.keys(chartData);
-            const data = Object.values(chartData);
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Jumlah Konsultasi',
-                        data: data,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
 

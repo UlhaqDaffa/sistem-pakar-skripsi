@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('pertanyaan_id')->constrained('pertanyaan')->cascadeOnDelete();
             $table->string('kode_jawaban',32);
-            $table->string('teks_jawaban', 100);
+            $table->string('teks_jawaban', 255);
             $table->integer('nilai')->default(0);
             $table->timestamps();
 
