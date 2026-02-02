@@ -93,7 +93,7 @@ Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini s
 ## 🛠️ Dibangun Dengan
 
 * **Backend**: [Laravel](https://laravel.com/) dan [FastAPI](https://fastapi.tiangolo.com/) 
-* **Frontend**: [Livewire](https://livewire.laravel.com/) + [Volt](https://livewire.laravel.com/docs/volt), [Tailwind CSS](https://tailwindcss.com/), [Alpine.js](https://alpinejs.dev/)
+* **Frontend**: [Livewire](https://livewire.laravel.com/) + [Volt](https://livewire.laravel.com/docs/volt), [Tailwind](https://tailwindcss.com/), [Alpine.js](https://alpinejs.dev/)
 * **Komponen UI**: [Flux](https://fluxui.dev/)
 * **Database**: [MySQL](https://www.mysql.com/)
 * **ML**: [Python](https://www.python.org/)
