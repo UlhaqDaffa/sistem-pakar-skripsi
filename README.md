@@ -8,22 +8,6 @@ Sistem ini dirancang untuk membantu mahasiswa dalam menemukan topik penelitian y
 
 &nbsp;
 
-## Tentang Sistem Pakar Rule-Based+Decision Tree
-
-Sistem pakar ini bertujuan untuk memberikan rekomendasi topik penelitian kepada mahasiswa. Keunikannya terletak pada penggunaan dua metode yang digabungkan, yaitu Rule-Based (berbasis aturan) dan Decision Tree (pohon keputusan).
-
-Proses kerjanya dibagi menjadi dua tahap utama (filter-then-classify):
-
-- Tahap Filter (Rule-Based) 
-
-  Sistem akan terlebih dahulu menyaring (mem-filter) data kemampuan mahasiswa. Aturan-aturan ini didasarkan pada pengetahuan dari para pakar seperti dosen. Misalnya, aturan bisa berdasarkan nilai mata kuliah tertentu, minat, atau keahlian teknis yang dimiliki mahasiswa.
-
-- Tahap Klasifikasi (Decision Tree)
-
-    Hasil dari tahap filter (yang sudah diubah menjadi format angka) kemudian akan diolah oleh model Decision Tree dengan algoritma CART. Model ini dilatih menggunakan data historis dari mahasiswa-mahasiswa yang sudah lulus. Tujuannya adalah untuk menemukan pola dan memberikan rekomendasi topik yang paling relevan berdasarkan "pengalaman" dari data tersebut.
-
-&nbsp;
-
 ## 🚀 Instalasi dan Prasyarat
 
 Repo ini memerlukan beberapa resource berikut ini untuk menjalankan proyek ini secara lokal.

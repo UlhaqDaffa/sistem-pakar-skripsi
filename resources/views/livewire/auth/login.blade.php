@@ -33,7 +33,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'password' => __('Username atau password salah.'),
             ]);
         }
 
@@ -124,4 +124,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
             <flux:link :href="route('register')" wire:navigate>{{ __('Buat') }}</flux:link>
         </div>
     @endif
+
+    <div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
+        <flux:link :href="route('admin.login')" wire:navigate>{{ __('Login sebagai Admin') }}</flux:link>
+    </div>
 </div>

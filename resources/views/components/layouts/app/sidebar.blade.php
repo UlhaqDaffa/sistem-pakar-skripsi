@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="bg-white/30 dark:bg-zinc-900/30 backdrop-blur-lg border-e border-white/40 dark:border-white/10">
+        <flux:sidebar  class="bg-white/30 dark:bg-zinc-900/30 backdrop-blur-lg border-e border-white/40 dark:border-white/10">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
@@ -14,9 +15,9 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Menu')" class="grid">
                     <flux:navlist.item class="mb-1" icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi')" :current="request()->routeIs('konsultasi')" wire:navigate>{{ __('Konsultasi') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat')" :current="request()->routeIs('riwayat')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
-                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor')" :current="request()->routeIs('ekspor')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="book-open" :href="route('konsultasi.starter')" :current="request()->routeIs('konsultasi.starter', 'konsultasi.proses', 'konsultasi.hasil')" wire:navigate>{{ __('Konsultasi') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="clipboard-document-list" :href="route('riwayat.index')" :current="request()->routeIs('riwayat.index')" wire:navigate>{{ __('Riwayat') }}</flux:navlist.item>
+                    <flux:navlist.item class="mb-1" icon="folder-arrow-down" :href="route('ekspor.index')" :current="request()->routeIs('ekspor.index')" wire:navigate>{{ __('Ekspor') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -26,10 +27,6 @@
             <flux:navlist variant="outline">
                 <flux:navlist.item icon="folder-git-2" href="https://github.com/UlhaqDaffa/sistem-pakar-skripsi" target="_blank">
                 {{ __('Repositori Proyek') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                {{ __('Bantuan') }}
                 </flux:navlist.item>
             </flux:navlist>
 

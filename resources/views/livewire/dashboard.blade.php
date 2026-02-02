@@ -1,17 +1,60 @@
-<x-layouts.app :title="__('Dashboard')">
+<?php
 
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
+use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
+use App\Models\Konsultasi;
 
+new #[Layout('components.layouts.app')] class extends Component {
+    public string $title = 'Dashboard';
+    
+    public function getTotalConsultationsProperty(): int
+    {
+        return Konsultasi::where('user_id', auth()->id())
+            ->where('status', 'selesai')
+            ->count();
+    }
+
+    public function getLastConsultationResultProperty(): ?string
+    {
+        $lastConsultation = Konsultasi::where('user_id', auth()->id())
+            ->where('status', 'selesai')
+            ->with('areaRisetFinal')
+            ->latest()
+            ->first();
+
+        return $lastConsultation?->areaRisetFinal?->nama_area ?? null;
+    }
+
+    public function getRecentConsultationsProperty()
+    {
+        return Konsultasi::where('user_id', auth()->id())
+            ->where('status', 'selesai')
+            ->with('areaRisetFinal')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($consultation) {
+                return (object)[
+                    'id' => $consultation->id,
+                    'result' => $consultation->areaRisetFinal?->nama_area ?? 'Belum ada hasil',
+                    'created_at' => $consultation->created_at,
+                ];
+            });
+    }
+}; ?>
+
+<div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <!-- Welcome Card & Main CTA -->
         <div class="p-6 rounded-xl shadow-lg bg-gradient-to-l from-blue-800/50 to-blue-900/80 backdrop-blur-lg border border-white/20">
             <h2 class="text-2xl font-semibold text-white mb-4">Selamat Datang, {{ auth()->user()->name ?? 'Pengguna' }}!</h2>
             <p class="text-blue-200 mb-6">Siap untuk memulai konsultasi baru atau melihat riwayat Anda?</p>
-            <a href="{{ route('konsultasi') }}"
+            <a href="{{ route('konsultasi.starter') }}"
                class="relative inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white overflow-hidden group
                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-                      x-data="{ hovered: false }"
-                      @mouseenter="hovered = true"
-                      @mouseleave="hovered = false">
+               x-data="{ hovered: false }"
+               @mouseenter="hovered = true"
+               @mouseleave="hovered = false"
+               wire:navigate>
                 <span class="absolute inset-0 bg-white transition-all duration-300 ease-out"
                       :class="{ 'w-full': hovered, 'w-0': !hovered }">
                 </span>
@@ -26,7 +69,6 @@
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
             <!-- Total Konsultasi -->
             <div class="bg-white/30 dark:bg-neutral-800/30 backdrop-blur-lg border border-white/40 dark:border-white/10 p-6 rounded-xl shadow-md flex items-center">
                 <div class="flex-shrink-0 mr-4">
@@ -36,7 +78,7 @@
                 </div>
                 <div class="flex-1">
                     <h3 class="text-lg font-medium text-gray-500 dark:text-neutral-400">Total Konsultasi</h3>
-                    <p class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{{ $totalConsultations ?? '0' }}</p>
+                    <p class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{{ $this->totalConsultations }}</p>
                 </div>
             </div>
 
@@ -49,21 +91,20 @@
                 </div>
                 <div class="flex-1">
                     <h3 class="text-lg font-medium text-gray-500 dark:text-neutral-400">Hasil Konsultasi Terakhir</h3>
-                    <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ $lastConsultationResult ?? 'Belum ada' }}</p>
+                    <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ $this->lastConsultationResult ?? 'Belum ada' }}</p>
                 </div>
             </div>
 
             <!-- Kartu ekspor -->
-            <a href="{{ route('ekspor') }}"
+            <a href="{{ route('ekspor.index') }}"
                class="relative bg-white/30 dark:bg-neutral-800/30 backdrop-blur-lg border border-white/40 dark:border-white/10 p-6 rounded-xl shadow-md flex items-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                x-data="{ hovered: false }"
                @mouseenter="hovered = true"
-               @mouseleave="hovered = false">
-
+               @mouseleave="hovered = false"
+               wire:navigate>
                 <span class="absolute inset-0 bg-secondary transition-all duration-600 ease-out"
                       :class="{ 'w-full': hovered, 'w-0': !hovered }">
                 </span>
-
                 <div class="relative z-10 flex items-center w-full">
                     <div class="flex-shrink-0 mr-4">
                         <svg :class="hovered ? 'text-white' : 'text-gray-500 dark:text-neutral-400'"
@@ -79,7 +120,7 @@
                         </h3>
                         <p :class="hovered ? 'text-gray-200' : 'text-gray-500 dark:text-neutral-400'"
                            class="transition-colors duration-300">
-                            Unduh data konsultasi.
+                            Unduh data konsultasi
                         </p>
                     </div>
                     <div class="ml-4">
@@ -91,30 +132,28 @@
                     </div>
                 </div>
             </a>
-
         </div>
 
         <div class="grid gap-4 md:grid-cols-1 flex-1">
-
             <!-- Riwayat rekomendasi -->
             <div class="bg-white/30 dark:bg-neutral-800/30 backdrop-blur-lg border border-white/40 dark:border-white/10 p-6 rounded-xl shadow-md overflow-hidden flex flex-col">
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex-shrink-0">Riwayat Konsultasi Terakhir</h3>
-                @if(isset($recentConsultations) && $recentConsultations->count() > 0)
+                @if($this->recentConsultations->count() > 0)
                     <div class="flex-grow overflow-y-auto">
                         <ul role="list" class="divide-y divide-gray-200 dark:divide-neutral-700">
-                            @foreach($recentConsultations as $consultation)
+                            @foreach($this->recentConsultations as $consultation)
                                 <li class="py-4 flex justify-between items-center">
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $consultation->result ?? 'N/A' }}</p>
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $consultation->result }}</p>
                                         <p class="text-sm text-gray-500 dark:text-neutral-400">{{ $consultation->created_at->format('d M Y H:i') }}</p>
                                     </div>
-                                    <a href="{{ route('riwayat.show', $consultation->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium">Detail</a>
+                                    <a href="{{ route('riwayat.show', $consultation->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium" wire:navigate>Detail</a>
                                 </li>
                             @endforeach
                         </ul>
                     </div>
                     <div class="mt-4 text-right flex-shrink-0">
-                        <a href="{{ route('riwayat') }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">Lihat Semua &rarr;</a>
+                        <a href="{{ route('riwayat.index') }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium" wire:navigate>Lihat Semua &rarr;</a>
                     </div>
                 @else
                     <div class="flex-grow flex flex-col items-center justify-center text-center">
@@ -125,9 +164,6 @@
                     </div>
                 @endif
             </div>
-
         </div>
-
     </div>
-
-</x-layouts.app>
+</div>
